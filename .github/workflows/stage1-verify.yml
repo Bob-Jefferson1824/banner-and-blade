@@ -1,0 +1,67 @@
+# Banner & Blade: Stage 1 verification. Runs on GitHub's own servers (they have npm access), so nothing needs to be run on your computer.
+# It starts by itself when this file is committed to the branch "stage1-verification" (it never runs for main).
+# To run it again (for example after adding the RENDER_CHECK_URL secret): Actions tab > the latest run > Re-run all jobs.
+# Read the result in the run's Summary page.
+# It never touches production: it uses a throw-away PostgreSQL container, and (optionally) the STAGING database in the
+# repository secret RENDER_CHECK_URL for a read-only connection/TLS check.
+name: Stage 1 verification
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [stage1-verification]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci_only_pw
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Locate the server folder
+        run: |
+          pkg=$(grep -l '"banner-and-blade-server"' $(find . -name package.json -not -path '*/node_modules/*') | head -1)
+          echo "SERVER_DIR=$(dirname "$pkg")" >> "$GITHUB_ENV"
+          echo "Server folder: $(dirname "$pkg")"
+      - name: PostgreSQL client tools (same major version as the test server)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-common >/dev/null
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y >/dev/null
+          sudo apt-get install -y -qq postgresql-client-16 >/dev/null
+          /usr/lib/postgresql/16/bin/psql --version
+          echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
+      - name: npm install (installs pg and socket.io for real)
+        working-directory: ${{ env.SERVER_DIR }}
+        run: npm install --no-audit --no-fund
+      - name: Run every Stage 1 check
+        working-directory: ${{ env.SERVER_DIR }}
+        env:
+          BB_ADMIN_URL: postgresql://postgres:ci_only_pw@localhost:5432/postgres
+          RENDER_CHECK_URL: ${{ secrets.RENDER_CHECK_URL }}
+        run: |
+          if [ -n "$RENDER_CHECK_URL" ]; then
+            export BB_ALLOWED_DB_HOSTS="$(node -e "console.log(new URL(process.env.RENDER_CHECK_URL).hostname)")"
+          fi
+          set +e
+          node verify.js | tee verify-output.txt
+          code=${PIPESTATUS[0]}
+          { echo '## Stage 1 verification'; echo '```'; cat verify-output.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          exit $code
+      - name: Keep the output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage1-verify-output
+          path: ${{ env.SERVER_DIR }}/verify-output.txt
+          if-no-files-found: ignore

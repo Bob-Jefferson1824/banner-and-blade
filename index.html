@@ -1,5 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Banner and Blade</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Banner and Blade</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@400;500;700&family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
@@ -25,6 +24,9 @@ body.playing #stage{cursor:none}
 .screen{position:absolute;inset:0;display:none;overflow-y:auto;pointer-events:auto;
   padding-block:max(24px,env(safe-area-inset-top,0px)) 24px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
 .screen.active{display:block}
+.in{background:#14110d;border:1px solid var(--line);color:var(--ink);padding:9px 12px;font:inherit;width:100%;box-sizing:border-box}
+.prow{display:flex;align-items:center;gap:10px;padding:6px 8px;border-bottom:1px solid var(--line)}.prow.me{background:rgba(226,185,86,.1)}.prow .pn{flex:1;font-weight:600}.prow .pc{color:var(--mute);font-size:13px}.prow .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.mini{background:#14110d;border:1px solid var(--line);color:var(--ink);padding:3px 9px;cursor:pointer;font-family:var(--display);font-size:11px;letter-spacing:.08em;text-transform:uppercase}.mini:hover{border-color:var(--gold)}
 .screen.dim{background:rgba(8,6,4,.72)}
 .screen.vig{background:linear-gradient(90deg,rgba(10,8,5,.94) 0%,rgba(10,8,5,.82) 38%,rgba(10,8,5,.18) 78%,rgba(10,8,5,0) 100%)}
 .col{width:min(520px,100%);margin:0;display:flex;flex-direction:column;gap:14px;padding:4vh 0 4vh 3vw}
@@ -57,6 +59,14 @@ p{margin:0;line-height:1.45}
 .field label,.field .lab{font-family:var(--display);letter-spacing:.12em;text-transform:uppercase;font-size:12px;color:var(--gold);display:flex;justify-content:space-between;gap:8px}
 .field .lab output{color:var(--ink);font-family:var(--body);letter-spacing:0;font-size:16px}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
+#classList{display:grid;gap:10px}
+.clsCard{display:grid;grid-template-columns:54px 1fr;gap:12px;align-items:center;text-align:left;padding:10px 12px;background:#14110d;border:1px solid var(--line);cursor:pointer;color:var(--ink)}
+.clsCard:hover{border-color:var(--gold)} .clsCard[aria-pressed=true]{border-color:var(--gold2);background:#251f17;box-shadow:inset 0 0 0 1px var(--gold)} .clsCard:disabled{opacity:.35;cursor:not-allowed}
+.clsCard .sw{width:54px;height:64px;position:relative;border:1px solid var(--line);background:#0e0c09} .clsCard .sw i{position:absolute;left:0;right:0;display:block}
+.clsCard b{font-family:var(--display);letter-spacing:.08em;text-transform:uppercase;font-size:15px;color:var(--gold2)} .clsCard small{display:block;color:var(--mute);font-size:14px;margin:2px 0 5px}
+.clsCard .st{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px;color:var(--mute);letter-spacing:.06em;text-transform:uppercase} .clsCard .st span{display:block} .clsCard .st u{display:block;height:5px;background:#2b261d;margin-top:2px;text-decoration:none} .clsCard .st u em{display:block;height:100%;background:var(--gold)}
+#modeInfo{position:fixed;top:92px;left:50%;transform:translateX(-50%);z-index:6;padding:6px 16px;background:rgba(16,14,11,.78);border:1px solid var(--line);color:var(--gold2);font-family:var(--display);font-size:13px;letter-spacing:.08em;text-transform:uppercase;pointer-events:none;white-space:nowrap}
+#modeInfo[hidden]{display:none}
 .seg button{flex:1 1 auto;min-width:84px;padding:9px 12px;background:#14110d;border:1px solid var(--line);cursor:pointer;font-family:var(--display);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
 .seg button:hover{border-color:var(--gold);color:var(--ink)}
 .seg button[aria-pressed="true"]{background:var(--gold);color:#1a1307;border-color:var(--gold2)}
@@ -248,6 +258,7 @@ body.xmode #hud>*:not(#toast){display:none!important}
       <p class="tag">Two armies. One battlefield. Take the flags, hold the line and lead the charge in first or third person.</p>
       <button class="btn primary" id="mExplore">Explore the Continent</button>
       <button class="btn" data-go="custom">Battle</button>
+      <button class="btn" data-go="online">Online Play</button>
       <button class="btn" data-go="settings">Settings</button>
       <button class="btn" data-go="controls">Controls</button>
       <button class="btn" data-go="howto">How to Play</button>
@@ -264,6 +275,8 @@ body.xmode #hud>*:not(#toast){display:none!important}
         <button class="card" data-quick="village|conquest"><em>Conquest</em><b>Medieval Village</b><span>Fight through streets and a market square to claim the church and mill.</span></button>
         <button class="card" data-quick="castle|tdm"><em>Team Deathmatch</em><b>Castle Grounds</b><span>No flags. The first army to enough eliminations wins.</span></button>
         <button class="card" data-quick="village|tdm"><em>Team Deathmatch</em><b>Medieval Village</b><span>Close quarters brawling between the houses.</span></button>
+        <button class="card" data-quick="palace|conquest"><em>Conquest</em><b>Central Palace</b><span>Eight flags across the courtyard, gardens, towers and the throne room of a royal palace.</span></button>
+        <button class="card" data-quick="palace|tdm"><em>Team Deathmatch</em><b>Central Palace</b><span>Fight through courtyards, hedge gardens and palace halls.</span></button>
         <button class="card" data-quick="fortress|siege|1"><em>Fortress Siege</em><b>Attack the Fortress</b><span>Ram the gate or climb the walls and slay the king. Ride horses, command troops.</span></button>
         <button class="card" data-quick="fortress|siege|2"><em>Fortress Siege</em><b>Defend the Fortress</b><span>Man the walls and ballistas, hold the courtyard and keep the king alive until time runs out.</span></button>
       </div>
@@ -271,22 +284,58 @@ body.xmode #hud>*:not(#toast){display:none!important}
     </div>
   </section>
 
+  <section class="screen dim" id="scr-online">
+    <div class="col mid">
+      <h2>Online Play</h2>
+      <div class="panel">
+        <div class="field"><div class="lab"><label for="nName">Your name</label></div><input class="in" id="nName" maxlength="16" placeholder="Player" autocomplete="off"></div>
+        <div class="field"><div class="lab"><label for="nUrl">Server address</label></div><input class="in" id="nUrl" autocomplete="off" spellcheck="false"></div>
+        <p class="note" id="nStatus">Run the server (see README) and press Connect. Matches are run by the server, with AI filling empty places.</p>
+        <button class="btn primary" id="nConnect" style="width:100%">Connect</button>
+      </div>
+      <div class="panel" id="nPanel" hidden>
+        <div class="field"><div class="lab">Create a room</div><div class="seg" id="nPriv"><button data-val="0" aria-pressed="true">Public</button><button data-val="1" aria-pressed="false">Private</button></div></div>
+        <button class="btn" id="nCreate" style="width:100%">Create Room</button>
+        <div class="field" style="margin-top:12px"><div class="lab"><label for="nCode">Join with a code</label></div><div style="display:flex;gap:8px"><input class="in" id="nCode" maxlength="4" placeholder="ABCD" autocomplete="off" style="text-transform:uppercase"><button class="btn" id="nJoin">Join</button></div></div>
+        <div class="field" style="margin-top:12px"><div class="lab">Public rooms <button class="mini" id="nRefresh">Refresh</button></div><div id="nRooms"></div></div>
+      </div>
+      <div class="row"><button class="btn ghost" data-go="main">Back</button></div>
+    </div>
+  </section>
+  <section class="screen dim" id="scr-lobby">
+    <div class="col mid">
+      <h2>Room <span id="lCode" style="color:var(--gold);letter-spacing:.2em"></span></h2>
+      <p class="note" id="lPriv"></p>
+      <div class="panel"><div class="lab" style="margin-bottom:6px">Players</div><div id="lPlayers"></div>
+        <div class="field" id="lTeamF"><div class="lab">Your army</div><div class="seg" id="lTeam"></div></div>
+        <div class="field"><div class="lab">Your class</div><div class="seg" id="lClass"></div></div></div>
+      <div class="panel"><div id="lCfg"></div></div>
+      <div class="row"><button class="btn primary" id="lStart">Start Match</button><span class="note" id="lWait">Waiting for the host to start...</span><button class="btn ghost" id="lLeave">Leave Room</button></div>
+    </div>
+  </section>
+  <section class="screen dim" id="scr-class">
+    <div class="col mid">
+      <h2>Choose Your Class</h2>
+      <div class="panel"><div id="classList"></div><p class="note" id="classNote">Your class sets your weapon, armour, health and speed. Everyone on the field, soldiers included, fights as one of these five.</p></div>
+      <div class="row"><button class="btn primary" data-go="custom">Done</button></div>
+    </div>
+  </section>
   <section class="screen dim" id="scr-custom">
     <div class="col mid">
       <h2 id="cTitle">Choose Your Battle</h2>
       <div class="panel">
         <div class="field" id="cMapField"><div class="lab">Battlefield</div>
-          <div class="seg" data-key="map"><button data-val="castle" aria-pressed="true">Castle Grounds</button><button data-val="village" aria-pressed="false">Medieval Village</button><button data-val="fortress" aria-pressed="false">The Fortress</button></div></div>
+          <div class="seg" data-key="map"><button data-val="castle" aria-pressed="true">Castle Grounds</button><button data-val="village" aria-pressed="false">Medieval Village</button><button data-val="palace" aria-pressed="false">Central Palace</button><button data-val="fortress" aria-pressed="false">The Fortress</button></div></div>
         <div class="field" id="cModeField"><div class="lab">Game mode</div>
-          <div class="seg" data-key="mode"><button data-val="conquest" aria-pressed="true">Conquest</button><button data-val="tdm" aria-pressed="false">Team Deathmatch</button><button data-val="ffa" aria-pressed="false">Free for All</button><button data-val="siege" aria-pressed="false">Fortress Siege</button></div></div>
+          <div class="seg" data-key="mode"><button data-val="conquest" aria-pressed="true">Conquest</button><button data-val="tdm" aria-pressed="false">Team Deathmatch</button><button data-val="ffa" aria-pressed="false">Free for All</button><button data-val="siege" aria-pressed="false">Fortress Siege</button><button data-val="ironsquad" aria-pressed="false">Iron Squad</button><button data-val="kingstandard" aria-pressed="false">King's Standard</button><button data-val="archers" aria-pressed="false">Archer's Gambit</button><button data-val="manhunt" aria-pressed="false">Manhunt</button><button data-val="laststand" aria-pressed="false">Last Stand</button><button data-val="champion" aria-pressed="false">Champion</button></div></div>
         <div class="field" id="cTeamField"><div class="lab">Your army</div>
           <div class="seg blue" data-key="team"><button data-val="1" aria-pressed="true">Blue Army</button><button data-val="2" aria-pressed="false">Red Army</button></div></div>
         <div class="field"><div class="lab"><label for="cN" id="cNLabel">Soldiers per army</label><output id="cNo">12</output></div>
           <input type="range" id="cN" min="4" max="60" step="1" value="12"></div>
         <div class="field"><div class="lab">Match duration</div>
           <div class="seg" data-key="dur"><button data-val="180" aria-pressed="false">3 min</button><button data-val="360" aria-pressed="true">6 min</button><button data-val="600" aria-pressed="false">10 min</button><button data-val="900" aria-pressed="false">15 min</button></div></div>
-        <div class="field"><div class="lab">Starting weapon</div>
-          <div class="seg" data-key="weapon"><button data-val="sword" aria-pressed="true">Sword</button><button data-val="axe" aria-pressed="false">War Axe</button><button data-val="spear" aria-pressed="false">Spear</button><button data-val="bow" aria-pressed="false">Longbow</button></div></div>
+        <div class="field"><div class="lab">Your class</div>
+          <button class="btn ghost" id="cClassBtn" data-go="class" style="width:100%;text-align:left">Knight</button><p class="note" id="cClassNote"></p></div>
         <p class="note" id="cInfo"></p>
       </div>
       <div class="row"><button class="btn primary" id="cStart">Start Battle</button><button class="btn ghost" data-go="main">Back</button></div>
@@ -397,17 +446,31 @@ const Sim = (function () {
 
 const T_BLUE = 1, T_RED = 2;
 const rnd = (a, b) => a + Math.random() * (b - a);
+const REGEN_DELAY = 7, REGEN_RATE = 0.022; // seconds without taking damage, then this fraction of max health per second
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const angDiff = (a, b) => { let d = b - a; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
 
 /* ---------- weapons ---------- */
 const WEAPONS = {
-  sword: { id: 'sword', name: 'Arming Sword', dmg: 22, reach: 2.5, arc: 1.0, dur: 0.62, hit: 0.40, cd: 0.12, cleave: 2 },
-  axe:   { id: 'axe',   name: 'War Axe',      dmg: 31, reach: 2.4, arc: 1.15, dur: 0.86, hit: 0.54, cd: 0.18, cleave: 3 },
-  spear: { id: 'spear', name: 'Long Spear',   dmg: 17, reach: 3.7, arc: 0.45, dur: 0.70, hit: 0.38, cd: 0.10, cleave: 1 },
+  sword: { id: 'sword', name: 'Arming Sword', dmg: 25, reach: 2.6, arc: 1.05, dur: 0.54, hit: 0.31, cd: 0.08, cleave: 2, lunge: 2.6 },
+  axe:   { id: 'axe',   name: 'War Axe',      dmg: 33, reach: 2.5, arc: 1.2, dur: 0.74, hit: 0.43, cd: 0.14, cleave: 3, lunge: 2.2 },
+  spear: { id: 'spear', name: 'Long Spear',   dmg: 24, reach: 3.8, arc: 0.5, dur: 0.60, hit: 0.31, cd: 0.08, cleave: 1, lunge: 1.4 },
+  knife: { id: 'knife', name: 'Hunting Knife', dmg: 16, reach: 1.85, arc: 1.3, dur: 0.30, hit: 0.12, cd: 0.03, cleave: 1, lunge: 3.2 },
   // ranged: hold attack to draw, release to loose. damage scales with draw time.
-  bow:   { id: 'bow',   name: 'Longbow',      dmg: 36, reach: 2.2, arc: 0.6,  dur: 0.40, hit: 0.20, cd: 0.30, cleave: 1, ranged: true, draw: 0.85, speed: 48 }
+  bow:   { id: 'bow',   name: 'Longbow',      dmg: 30, reach: 2.2, arc: 0.6,  dur: 0.40, hit: 0.20, cd: 0.55, cleave: 1, ranged: true, draw: 1.05, speed: 46, spread: 0.032, minDraw: 0.34 },
+  // crossbow: one hard-hitting accurate bolt, then a long wind-up before the next
+  crossbow: { id: 'crossbow', name: 'Crossbow', dmg: 56, reach: 2.2, arc: 0.6, dur: 0.40, hit: 0.20, cd: 0.30, cleave: 1, ranged: true, xbow: 1, draw: 0.35, reload: 4.4, speed: 74, spread: 0.013, minDraw: 0.01 }
 };
+// classes: each has a weapon, a body, a speed and an armour value (damage taken multiplier)
+const CLASSES = {
+  knight:      { id: 'knight', name: 'Knight', weapon: 'sword', alt: ['sword', 'axe'], hp: 140, speed: 0.9, armor: 0.8, shield: 1, role: 'Defensive frontline. Heavy plate, sword and shield. Slow, but very hard to kill.' },
+  archer:      { id: 'archer', name: 'Archer', weapon: 'bow', alt: ['bow'], hp: 90, speed: 1.04, armor: 1.0, role: 'Ranged support. Light armour and a longbow. Strong at range, weak when caught.' },
+  crossbowman: { id: 'crossbowman', name: 'Crossbowman', weapon: 'crossbow', alt: ['crossbow'], hp: 105, speed: 0.96, armor: 0.9, role: 'Heavy bolts, long reload. One accurate shot can drop a soldier; miss and you are exposed.' },
+  scout:       { id: 'scout', name: 'Scout', weapon: 'knife', alt: ['knife'], hp: 95, speed: 1.17, armor: 1.0, role: 'Fast skirmisher with twin quick knives. Flank, dart in, strike, and leave.' },
+  spearman:    { id: 'spearman', name: 'Spearman', weapon: 'spear', alt: ['spear'], hp: 125, speed: 0.98, armor: 0.85, shield: 1, role: 'Long reach and a light shield. Holds lines and keeps cavalry-style rushes at bay.' }
+};
+const CLASS_IDS = Object.keys(CLASSES);
+const LEGACY_CLASS = { sword: 'knight', axe: 'knight', bow: 'archer', spear: 'spearman' };
 const ARROW_G = 12;
 WEAPONS.ballista = { id: 'bow', name: 'Ballista', dmg: 95, reach: 2, arc: 0.6, dur: 0.4, hit: 0.2, cd: 3.2, cleave: 1, ranged: true, draw: 0.5, speed: 85, big: 1 };
 WEAPONS.catapult = { id: 'bow', name: 'Catapult', dmg: 110, reach: 2, arc: 0.6, dur: 0.4, hit: 0.2, cd: 5, cleave: 1, ranged: true, draw: 0.7, speed: 44, big: 1, stone: 1 };
@@ -674,6 +737,160 @@ function buildMap(id) {
         let ok = true; for (const o of def.obs) if (distToObs(o, x, z) < 2.8) { ok = false; break; }
         if (ok) { circ(x, z, 0.8, 7, 'tree', { s: 0.9 + fr() * 0.8 }); n++; }
       } }
+  } else if (id === 'palace') {
+    def.name = 'Central Palace';
+    def.blurb = 'The royal stronghold. Storm the gates, win the Grand Courtyard, then fight room to room through the palace to the throne. Gardens, towers and side gates give a dozen ways in.';
+    def.ground = 'grass';
+    const T = 4, WX = 84, WZ = 100, PH = 11;
+    // ---- outer curtain wall: corner towers, twin gate towers north and south, mid-wall side towers, small posterns ----
+    const addWall = (cx, cz, w, d) => {
+      box(cx, cz, w, d, WALK, 'cwall');
+      def.platforms.push({ x: cx, z: cz, w, d, y: WALK, kind: 'walk' });
+      const pt = 0.4;
+      for (const sd of [-1, 1]) {
+        if (w > d) box(cx, cz + sd * (d / 2 - pt / 2), w, pt, WALK + 0.8, 'parapet', { y0: WALK });
+        else box(cx + sd * (w / 2 - pt / 2), cz, pt, d, WALK + 0.8, 'parapet', { y0: WALK });
+      }
+    };
+    const postern = (cx, cz, ax) => { // a small gate: a walkway carried over a 6m opening
+      const w = ax ? 6 : T, d = ax ? T : 6;
+      def.platforms.push({ x: cx, z: cz, w, d, y: WALK, kind: 'walk' });
+      for (const sd of [-1, 1]) { if (ax) box(cx, cz + sd * (T / 2 - 0.2), w, 0.4, WALK + 0.8, 'parapet', { y0: WALK }); else box(cx + sd * (T / 2 - 0.2), cz, 0.4, d, WALK + 0.8, 'parapet', { y0: WALK }); }
+      box(cx, cz, w, d, WALK - 0.5, 'twall', { y0: 6.2 });
+    };
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) { // corner towers
+      const xf = sx < 0 ? 'px' : 'nx', zf = sz < 0 ? 'pz' : 'nz';
+      addTower({ cx: sx * WX, cz: sz * WZ, half: 6, tw: 1.4, levels: levels3, door: { face: xf, a: -sz * 4 }, attach: [{ face: xf, a: 0 }, { face: zf, a: 0 }], ladder: { face: OPP[xf], a: 2.6 }, winOffsets: [-3.2, 3.2] });
+    }
+    for (const sz of [-1, 1]) { // gate towers and the N/S curtain
+      for (const sx of [-1, 1]) {
+        const cf = sz < 0 ? 'pz' : 'nz', field = OPP[cf];
+        addTower({ cx: sx * 8.5, cz: sz * WZ, half: 3.5, tw: 1.2, levels: levels2, door: { face: cf, a: 0 }, attach: [{ face: 'nx', a: 0 }, { face: 'px', a: 0 }], ladder: { face: field, a: 1.4 }, winOffsets: [0, -1.3, 1.3] });
+        addWall(sx * 29.5, sz * WZ, 35, T); addWall(sx * 65.5, sz * WZ, 25, T); postern(sx * 50, sz * WZ, true);
+      }
+      def.platforms.push({ x: 0, z: sz * WZ, w: 10, d: T, y: WALK, kind: 'walk' });
+      for (const sd of [-1, 1]) box(0, sz * WZ + sd * (T / 2 - 0.2), 10, 0.4, WALK + 0.8, 'parapet', { y0: WALK });
+      box(0, sz * WZ, 10, T, WALK - 0.5, 'twall', { y0: 7 });
+    }
+    for (const sx of [-1, 1]) { // E/W curtain, side towers, posterns
+      const f = sx < 0 ? 'px' : 'nx';
+      addTower({ cx: sx * WX, cz: 0, half: 5, tw: 1.3, levels: levels3, door: { face: f, a: 0 }, attach: [{ face: 'pz', a: 0 }, { face: 'nz', a: 0 }], ladder: { face: OPP[f], a: 0 }, winOffsets: [-2.6, 2.6] });
+      for (const sz of [-1, 1]) { addWall(sx * WX, sz * 76, T, 36); addWall(sx * WX, sz * 28.5, T, 47); postern(sx * WX, sz * 55, false); }
+    }
+    // ---- the palace ----
+    const run = (x0, z0, x1, z1, th, hgt, gaps) => {
+      const ax = z0 === z1, a0 = ax ? Math.min(x0, x1) : Math.min(z0, z1), a1 = ax ? Math.max(x0, x1) : Math.max(z0, z1), c = ax ? z0 : x0;
+      const put = (p, q, y0, y1) => { if (q - p < 0.05 || y1 - y0 < 0.05) return; const m = (p + q) / 2, ex = y0 > 0 ? { y0 } : undefined; if (ax) box(m, c, q - p, th, y1, 'twall', ex); else box(c, m, th, q - p, y1, 'twall', ex); };
+      let p = a0;
+      for (const g of gaps.slice().sort((u, v) => u.a0 - v.a0)) { put(p, g.a0, 0, hgt); if (g.y1 > 0) put(g.a0, g.a1, 0, g.y1); put(g.a0, g.a1, g.y2, hgt); p = g.a1; }
+      put(p, a1, 0, hgt);
+    };
+    const dr = (c, w, y2) => ({ a0: c - w / 2, a1: c + w / 2, y1: 0, y2: y2 || 4.6 });
+    const wn = (c) => ({ a0: c - 1.2, a1: c + 1.2, y1: 2.2, y2: 4.8 });
+    def.windows = [];
+    const wins = (cs, fixed, ax) => cs.map(c => { def.windows.push(ax ? { x: c, z: fixed, ax: 1 } : { x: fixed, z: c, ax: 0 }); return wn(c); });
+    // outer walls (inner faces at x=+-34, z=+-22)
+    run(-36, 23, 36, 23, 2, PH, [dr(0, 8, 6.5), dr(-25, 5), dr(25, 5)].concat(wins([-32, -18, -9, 9, 18, 32], 23, true)));
+    run(-36, -23, 36, -23, 2, PH, [dr(0, 6, 5.6), dr(-25, 5), dr(25, 5)].concat(wins([-32, -18, -9, 9, 18, 32], -23, true)));
+    for (const sx of [-1, 1]) run(sx * 35, -22, sx * 35, 22, 2, PH, [dr(-11, 5), dr(11, 5)].concat(wins([-18, -3, 3, 18], sx * 35, false)));
+    // inner walls
+    const IH = PH - 0.5;
+    for (const sx of [-1, 1]) {
+      run(sx * 14, -22, sx * 14, 22, 1.6, IH, [dr(-16, 5), dr(-6, 5), dr(6, 5), dr(16, 5)]);
+    }
+    run(-14, 12, 14, 12, 1.6, IH, [dr(0, 8, 6)]);
+    run(-14, -12, 14, -12, 1.6, IH, [dr(-9, 5), dr(9, 5)]);
+    for (const sx of [-1, 1]) run(sx * 36, 0, sx * 14, 0, 1.6, IH, [dr(sx * 25, 5)]);
+    box(0, 0, 76, 52, PH + 1.2, 'twall', { y0: PH }); // roof slab
+    // portico on the courtyard front
+    box(0, 27.5, 36, 7, 10, 'twall', { y0: 9 });
+    for (const x of [-16.5, -11.5, -6.5, 6.5, 11.5, 16.5]) circ(x, 27, 0.9, 9, 'pillar');
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) circ(sx * 36.5, sz * 24.5, 3.2, 15, 'turret');
+    // interior: columns, throne, tables, chests
+    for (const sx of [-1, 1]) { for (const z of [-6, 0, 6]) circ(sx * 8, z, 0.8, PH, 'pillar'); circ(sx * 9, 17, 0.8, PH, 'pillar'); }
+    box(0, -10.3, 2.6, 2.0, 3.4, 'throne');
+    box(0, -17, 8, 1.6, 1.1, 'crate'); // banquet table in the antechamber
+    for (const sx of [-1, 1]) {
+      box(sx * 25, 12, 8, 1.6, 1.1, 'crate'); box(sx * 25, -12, 8, 1.6, 1.1, 'crate'); // wing tables
+      box(sx * 31, 16, 1.6, 1.6, 1.3, 'crate'); box(sx * 31, -16, 1.6, 1.6, 1.3, 'crate'); box(sx * 20, 5, 1.6, 1.6, 1.3, 'crate'); box(sx * 20, -5, 1.6, 1.6, 1.3, 'crate');
+    }
+    // ---- Grand Courtyard (south) ----
+    circ(0, 70, 4.8, 1.1, 'well'); circ(0, 70, 1.5, 4.8, 'statue');
+    for (const sx of [-1, 1]) {
+      box(sx * 14, 56, 10, 1.6, 1.1, 'lowwall'); box(sx * 14, 84, 10, 1.6, 1.1, 'lowwall'); // flower planters
+      circ(sx * 24, 38, 1.5, 4.6, 'statue'); circ(sx * 26, 78, 1.5, 4.6, 'statue');
+      // guardhouses by the main gate, servants' quarters and stores in the side yards
+      box(sx * 24, 90, 12, 8, 5, 'house', { tone: 0 });
+      for (const [bx, bz, bw, bd, tn] of [[70, 38, 12, 9, 1], [53, 38, 12, 9, 3], [70, 66, 12, 10, 2], [53, 66, 12, 10, 0], [70, 88, 12, 9, 3], [53, 88, 12, 9, 1]]) box(sx * bx, bz, bw, bd, 5, 'house', { tone: tn });
+      for (const [bx, bz] of [[62, 50], [62, 52], [60.4, 51.2], [62, 78], [44, 100 - 8]]) box(sx * bx, bz, 1.6, 1.6, 1.3, 'crate');
+      circ(sx * 44, 52, 1.2, 1.6, 'rock');
+    }
+    // ---- Royal Gardens (north): hedges, fountains, statues, gardener's lodges ----
+    for (const sx of [-1, 1]) {
+      for (const z of [-40, -80]) { box(sx * 32, z, 20, 1.2, 1.5, 'hedge'); box(sx * 56, z, 12, 1.2, 1.5, 'hedge'); }
+      box(sx * 26, -68, 14, 1.2, 1.5, 'hedge'); box(sx * 26, -52, 14, 1.2, 1.5, 'hedge');
+      circ(sx * 26, -60, 2.4, 1.2, 'well'); circ(sx * 46, -60, 1.4, 4.4, 'statue');
+      box(sx * 74, -88, 12, 8, 5, 'house', { tone: 2 }); box(sx * 74, -34, 10, 8, 5, 'house', { tone: 0 });
+      box(sx * 38, -88, 3, 1, 0.9, 'lowwall'); box(sx * 38, -33, 3, 1, 0.9, 'lowwall'); // benches
+      box(sx * 70, -78, 1.6, 1.6, 1.3, 'crate'); box(sx * 71.8, -77, 1.6, 1.6, 1.3, 'crate');
+    }
+    // ---- flank yards (open ground between the side towers and the palace) ----
+    for (const sx of [-1, 1]) {
+      box(sx * 56, -16, 8, 1.2, 1.5, 'barricade'); box(sx * 56, 16, 8, 1.2, 1.5, 'barricade');
+      box(sx * 48, 0, 1.2, 8, 1.5, 'barricade'); circ(sx * 62, 10, 1.8, 2.2, 'rock'); circ(sx * 62, -10, 1.8, 2.2, 'rock');
+      box(sx * 70, 18, 1.6, 1.6, 1.3, 'crate'); box(sx * 70, -18, 1.6, 1.6, 1.3, 'crate');
+    }
+    // ---- fields outside the walls ----
+    for (const sz of [-1, 1]) for (const sx of [-1, 1]) {
+      box(sx * 26, sz * 108, 8, 1.2, 1.5, 'barricade'); box(sx * 60, sz * 110, 8, 1.2, 1.5, 'barricade');
+      circ(sx * 44, sz * 108, 2, 2.4, 'rock'); box(sx * 12, sz * 112, 6, 1.2, 1.5, 'barricade');
+      box(sx * 100, sz * 30, 7, 6, 5, 'house', { tone: 1 }); circ(sx * 104, sz * 14, 1.8, 2.2, 'rock');
+      box(sx * 108, sz * 60, 1.2, 8, 1.5, 'barricade'); box(sx * 98, sz * 80, 7, 1.2, 1.5, 'barricade');
+    }
+    // roads
+    def.roads.push({ x: 0, z: 63, w: 88, d: 70, kind: 'cobble' });          // Grand Courtyard
+    def.roads.push({ x: 0, z: -62, w: 10, d: 76, kind: 'cobble' });          // garden avenue
+    def.roads.push({ x: 0, z: -60, w: 22, d: 22, kind: 'cobble' });          // garden plaza
+    for (const sz of [-1, 1]) {
+      def.roads.push({ x: 0, z: sz * 111, w: 10, d: 24, kind: 'dirt' });
+      for (const sx of [-1, 1]) {
+        def.roads.push({ x: sx * 50, z: sz * 111, w: 5, d: 24, kind: 'dirt' });
+        def.roads.push({ x: sx * 94, z: sz * 55, w: 24, d: 5, kind: 'dirt' });
+        def.roads.push({ x: sx * 60, z: sz * 11, w: 50, d: 4, kind: 'dirt' });
+        def.roads.push({ x: sx * 64, z: sz * 55, w: 4, d: 8, kind: 'dirt' });
+      }
+    }
+    def.roads.push({ x: 0, z: 0, w: 70, d: 3, kind: 'dirt' });
+    def.roads = def.roads.filter(r => r.w * r.d > 0);
+    def.beds = [];
+    for (const sx of [-1, 1]) { def.beds.push({ x: sx * 50, z: -48, w: 10, d: 8 }, { x: sx * 50, z: -72, w: 10, d: 8 }, { x: sx * 15, z: -88, w: 6, d: 6 }, { x: sx * 15, z: -33, w: 6, d: 6 }); }
+    def.points = [
+      { id: 'A', name: 'Western Tower',   x: -68, z: 0,   r: 8, owner: 0 },
+      { id: 'B', name: 'Main Courtyard',  x: 0,   z: 52,  r: 8, owner: 0 },
+      { id: 'C', name: 'Eastern Tower',   x: 68,  z: 0,   r: 8, owner: 0 },
+      { id: 'D', name: 'Palace Entrance', x: 0,   z: 33,  r: 8, owner: 0 },
+      { id: 'E', name: 'Throne Room',     x: 0,   z: 1,   r: 8, owner: 0 },
+      { id: 'F', name: 'Royal Gardens',   x: 0,   z: -60, r: 8, owner: 0 },
+      { id: 'G', name: 'Rear Gatehouse',  x: 0,   z: -88, r: 8, owner: T_BLUE },
+      { id: 'H', name: 'Main Gatehouse',  x: 0,   z: 88,  r: 8, owner: T_RED }
+    ];
+    // trees: orchards in the gardens, groves along the walls and outside (mirrored in x)
+    const rng = lcg(37);
+    const okTree = (x, z) => {
+      if (Math.abs(z) > H - 22) return false;
+      if (Math.abs(x) < 80 && Math.abs(z) < 98) { if (z > -30) return false; if (Math.abs(x) < 12 || Math.abs(x) > 70) return false; }
+      for (const p of def.points) if (Math.hypot(x - p.x, z - p.z) < p.r + 5) return false;
+      for (const o of def.obs) if (distToObs(o, x, z) < 3.2) return false;
+      for (const r of def.roads) if (Math.abs(x - r.x) < r.w / 2 + 1.5 && Math.abs(z - r.z) < r.d / 2 + 1.5) return false;
+      return true;
+    };
+    let n = 0, tries = 0;
+    while (n < 56 && tries++ < 4000) {
+      const x = rnd2(rng, 8, H - 6), z = rnd2(rng, -(H - 22), H - 22);
+      if (!okTree(x, z) || !okTree(-x, z)) continue;
+      circ(x, z, 0.8, 7, 'tree', { s: 0.8 + rng() * 0.6 }); circ(-x, z, 0.8, 7, 'tree', { s: 0.8 + rng() * 0.6 }); n++;
+    }
+    for (const sx of [-1, 1]) for (const z of [-92, -84, -36, -30]) circ(sx * 9.5, z, 0.8, 6, 'tree', { s: 0.7 }); // along the garden avenue
   } else {
     def.name = 'Medieval Village';
     def.blurb = 'Tight streets, a market square and a hilltop church. Fight house to house, or climb the church and mill towers for the high ground.';
@@ -1057,17 +1274,25 @@ let nextId = 1;
 class Soldier {
   constructor(match, team, isPlayer, weaponId, look) {
     this.m = match; this.id = nextId++; this.team = team; this.isPlayer = isPlayer; this.look = look || team;
-    this.weapon = WEAPONS[weaponId] || WEAPONS.sword;
-    this.maxHp = isPlayer ? 120 : 100;
+    const cid = CLASSES[weaponId] ? weaponId : (LEGACY_CLASS[weaponId] || 'knight');
+    this.cls = cid; this.cdef = CLASSES[cid];
+    this.weapon = WEAPONS[LEGACY_CLASS[weaponId] && weaponId !== 'sword' ? weaponId : this.cdef.weapon] || WEAPONS.sword;
+    this.armor = this.cdef.armor; this.regenMul = 1; this.loaded = true; this.reloadT = 0; this.blockT = 0; this.atkBuf = 0; this.carrying = false;
+    this.maxHp = this.cdef.hp * (match.hpMul || 1);
     this.name = isPlayer ? 'You' : match.mode === 'ffa' ? 'Knight ' + this.id : (team === T_BLUE ? 'Blue' : 'Red') + ' Knight ' + this.id;
     this.kills = 0; this.deaths = 0; this.dmgDealt = 0;
     this.input = { mx: 0, mz: 0, yaw: 0, attack: false, block: false, sprint: false, jump: false, aim: null };
     this.drawT = -1; this._aim = { x: 0, y: 0, z: 0 }; this.ladderCd = 0; this.teamKills = 0;
     this.ai = { t: Math.random() * 0.3, target: null, role: 'attack', obj: -1, ox: 0, oz: 0, blockT: 0, reactId: -1, path: null, pi: 0, pathT: 0, pgx: 0, pgz: 0, strafe: Math.random() < 0.5 ? 1 : -1, strafeT: 1, wanderT: 0, chkT: 0.8, cx: 0, cz: 0, stuck: 0, sideT: 0, side: 1, skill: rnd(0.8, 1.2), moved: false, drawGoal: 0.7, tw: null, twCd: rnd(2, 10), reck: false };
-    this.speedBase = (isPlayer ? 5.4 : 4.5) * rnd(0.95, 1.05);
+    this.speedBase = (isPlayer ? 5.4 : 4.5) * rnd(0.95, 1.05) * this.cdef.speed;
     this.respawnDelay = isPlayer ? 5 : rnd(5, 9);
     this.spawn();
     this.alive = true; this.deadT = 0;
+  }
+  setClass(cid) { // used by the online client to mirror the server's choice
+    if (!CLASSES[cid]) return;
+    this.cls = cid; this.cdef = CLASSES[cid]; this.weapon = WEAPONS[this.cdef.weapon] || WEAPONS.sword; this.armor = this.cdef.armor;
+    this.maxHp = this.cdef.hp * (this.m.hpMul || 1);
   }
   spawn(pos) {
     const m = this.m;
@@ -1079,7 +1304,7 @@ class Soldier {
     this.atkT = -1; this.atkHit = false; this.atkSeq = 0; this.cdT = 0.3; this.blocking = false; this.drawT = -1; this.ladderCd = 0;
     this.stamina = 100; this.stagger = 0; this.lastAttacker = null; this.lastHitT = -99; this.sprinting = false; this.sprintLock = 0;
     this.ai.path = null; this.ai.target = null; this.ai.stuck = 0; this.ai.cx = this.x; this.ai.cz = this.z; this.ai.tw = null; this.ai.twCd = rnd(4, 14);
-    this.lastCombat = -99; this.regenAcc = 0; this.burnT = 0; this.sw = this.sw || 0;
+    this.lastCombat = -99; this.lastDmgT = -99; this.regenAcc = 0; this.burnT = 0; this.sw = this.sw || 0; this.loaded = true; this.reloadT = 0; this.atkBuf = 0; this.blockT = 0; this.regening = false;
   }
   get speed() { return Math.hypot(this.vx, this.vz); }
 
@@ -1097,20 +1322,29 @@ class Soldier {
     const ranged = !!w.ranged;
     if (!ranged && this.drawT >= 0) this.drawT = -1;
     const canBlock = !ranged && this.atkT < 0 && this.stagger <= 0 && this.stamina > 0;
+    const wasBlk = this.blocking;
     this.blocking = !!(inp.block && canBlock);
+    if (this.blocking) this.blockT = wasBlk ? this.blockT + dt : 0; else this.blockT = 9; // blockT = how long the guard has been up (a fresh guard can parry)
+    if (!ranged) { if (inp.attack) this.atkBuf = 0.2; else this.atkBuf -= dt; } // brief input buffer: a click just before the swing is ready still swings
     // start attack
-    if (!ranged && inp.attack && this.atkT < 0 && this.cdT <= 0 && !this.blocking && this.stagger <= 0) {
-      this.atkT = 0; this.atkHit = false; this.atkSeq++;
+    if (!ranged && (inp.attack || this.atkBuf > 0) && this.atkT < 0 && this.cdT <= 0 && !this.blocking && this.stagger <= 0) {
+      this.atkT = 0; this.atkHit = false; this.atkSeq++; this.atkBuf = 0;
+      const lg = w.lunge || 0; if (lg && !this.horse && !this.mount) { this.vx += Math.sin(this.yaw) * lg; this.vz += Math.cos(this.yaw) * lg; } // step into the blow
       m.emit('swing', this);
     }
     // bow: hold to draw, release to loose
-    if (ranged) {
+    if (ranged && w.xbow && !this.mount) {
+      // crossbow: shot is already wound; pull the trigger to loose it, then a long reload
+      if (!this.loaded) { this.reloadT -= dt * (this.speed > 3 ? 0.8 : 1); if (this.reloadT <= 0) { this.loaded = true; this.reloadT = 0; m.emit('reloaded', this); } }
+      else if (inp.attack && this.cdT <= 0 && this.stagger <= 0) { m.fireArrow(this, 1); this.loaded = false; this.reloadT = w.reload; this.cdT = w.cd; this.drawT = -1; }
+      this.drawT = -1;
+    } else if (ranged) {
       const mb = this.mount, ready = !mb || (mb.cd <= 0 && !mb.pend); // a siege weapon must be reloaded before it can be wound again
       if (inp.attack && this.cdT <= 0 && this.stagger <= 0 && ready) {
         if (this.drawT < 0) { this.drawT = 0; m.emit('draw', this); }
         this.drawT = Math.min(w.draw, this.drawT + dt);
       } else if (this.drawT >= 0) {
-        if (this.drawT >= 0.22 && this.stagger <= 0) { if (mb) { m.shootMount(this, mb, Math.min(1, this.drawT / w.draw)); this.cdT = 0.2; } else { m.fireArrow(this, Math.min(1, this.drawT / w.draw)); this.cdT = w.cd; } }
+        if (this.drawT >= (mb ? 0.22 : (w.minDraw || 0.22)) && this.stagger <= 0) { if (mb) { m.shootMount(this, mb, Math.min(1, this.drawT / w.draw)); this.cdT = 0.2; } else { m.fireArrow(this, Math.min(1, this.drawT / w.draw)); this.cdT = w.cd; } }
         this.drawT = -1;
       }
     }
@@ -1130,7 +1364,9 @@ class Soldier {
     if (swim) sp *= 0.5; if (this.horse) sp *= 1.8; if (this.fly) sp *= 1.7;
     if (this.blocking) sp *= 0.55;
     if (this.atkT >= 0) sp *= 0.62;
-    if (this.drawT >= 0) sp *= 0.55;
+    if (this.drawT >= 0) sp *= 0.42;
+    if (w.xbow && !this.loaded) sp *= 0.82;
+    if (this.carrying) sp *= 0.9;
     if (this.stagger > 0) sp *= 0.35;
     const drg = (inp.drag && !this.horse && !this.fly && !this.admin && this.y < 1 && !swim) ? m.dragTarget(this) : null;
     if (drg) sp = Math.min(sp, 0.9); // dragging a catapult is very slow
@@ -1194,8 +1430,11 @@ class Soldier {
     // stamina regen
     if (!this.sprinting && !this.blocking) this.stamina = Math.min(100, this.stamina + 16 * dt);
     else if (this.blocking) this.stamina = Math.min(100, this.stamina + 4 * dt);
-    // health regen for the player when out of combat
-    if (this.isPlayer && m.time - this.lastCombat > 6 && this.hp < this.maxHp) this.hp = Math.min(this.maxHp, this.hp + 3 * dt);
+    // natural health regeneration: slowly, after a spell without taking damage (modes can scale or switch it off)
+    this.regening = false;
+    if (!this.isKing && this.burnT <= 0 && this.hp < this.maxHp && m.elapsed - this.lastDmgT > REGEN_DELAY && this.regenMul * m.regenMul > 0) {
+      this.hp = Math.min(this.maxHp, this.hp + this.maxHp * REGEN_RATE * this.regenMul * m.regenMul * dt); this.regening = true;
+    }
   }
 }
 
@@ -1209,33 +1448,103 @@ class Match {
     this.def = buildMap(c.map);
     this.nav = new Nav(this.def);
     this.mode = c.mode;
+    this.hpMul = c.mode === 'ironsquad' ? 2 : 1; this.regenMul = 1; // Iron Squad: double health for everyone
     this.listeners = [];
     this.time = c.duration; this.elapsed = 0; this.ended = false; this.winner = 0;
     this.scores = { 1: 0, 2: 0 };
-    this.target = c.mode === 'conquest' ? 100 * this.def.points.length : this.ffa ? 0 : Math.max(30, c.n * 5);
+    this.target = c.mode === 'conquest' ? 100 * this.def.points.length : this.ffa ? 0 : (c.mode === 'manhunt' || c.mode === 'laststand' || c.mode === 'champion') ? 1e9 : c.mode === 'kingstandard' ? 150 : Math.max(30, c.n * 5);
     this.points = this.def.points.map((p, i) => ({ idx: i, id: p.id, name: p.name, x: p.x, z: p.z, r: p.r, owner: p.owner, v: p.owner === T_BLUE ? 100 : p.owner === T_RED ? -100 : 0, bCount: 0, rCount: 0 }));
     this.scoreT = 0; this.assignT = 0; this.pathBudget = 0;
     this.diff = DIFF[c.difficulty] || DIFF.normal;
     this.soldiers = [];
     this.arrows = []; this.arrowSeq = 1;
     this.stats = { captures: 0 };
-    const wpick = () => { const r = Math.random(); return r < 0.46 ? 'sword' : r < 0.64 ? 'axe' : r < 0.82 ? 'spear' : 'bow'; };
+    const H = c.humans && c.humans.length ? c.humans : null; // online match: a list of human fighters {id,name,team,cls}
+    const rangedOnly = c.mode === 'archers';
+    const wpick = () => { if (rangedOnly) return Math.random() < 0.62 ? 'archer' : 'crossbowman'; const r = Math.random(); return r < 0.3 ? 'knight' : r < 0.52 ? 'spearman' : r < 0.72 ? 'archer' : r < 0.84 ? 'crossbowman' : 'scout'; };
+    let pw = c.cls && CLASSES[c.cls] ? c.cls : c.weapon;
+    if (rangedOnly && !(pw === 'archer' || pw === 'crossbowman' || pw === 'bow')) pw = 'archer'; // Archer's Gambit: ranged classes only
     if (this.ffa) {
       // free for all: every fighter is their own side
       for (let i = 0; i < c.n; i++) {
         const team = i + 1; this.scores[team] = 0;
-        this.soldiers.push(new Soldier(this, team, i === 0, i === 0 ? c.weapon : wpick(), i === 0 ? 1 : 2 + ((i - 1) % 7)));
+        const hu = H && H[i];
+        const so = new Soldier(this, team, H ? !!hu : i === 0, H ? (hu ? hu.cls : wpick()) : i === 0 ? pw : wpick(), i === 0 ? 1 : 2 + ((i - 1) % 7));
+        if (hu) { so.hid = hu.id; so.name = hu.name; }
+        this.soldiers.push(so);
       }
     } else for (const team of [T_BLUE, T_RED]) {
       for (let i = 0, cnt = c.mode === 'siege' && team === T_BLUE ? Math.round(c.n * 1.2) : c.n; i < cnt; i++) {
-        const isP = team === c.team && i === 0;
-        this.soldiers.push(new Soldier(this, team, isP, isP ? c.weapon : wpick()));
+        const hu = H ? H.filter(h => h.team === team)[i] : null;
+        const isP = H ? !!hu : team === c.team && i === 0;
+        const so = new Soldier(this, team, isP, H ? (hu ? hu.cls : wpick()) : isP ? pw : wpick());
+        if (hu) { so.hid = hu.id; so.name = hu.name; }
+        this.soldiers.push(so);
       }
     }
     this.player = this.soldiers.find(s => s.isPlayer);
-    this.player.name = 'You';
+    if (!H) this.player.name = 'You';
+    this.setupMode();
     this.assignObjectives(T_BLUE); this.assignObjectives(T_RED);
     if (this.mode === 'siege') this.setupSiege();
+  }
+  /* ----- special modes ----- */
+  setupMode() {
+    const mo = this.mode, S = this.soldiers, P = this.player, special = (s, mul, nm) => { s.maxHp = s.hp = Math.round(s.maxHp * mul); s.respawnDelay = 1e9; s.name = nm; };
+    if (mo === 'manhunt') { // Blue is hunted: its target (you, if you fight for Blue) must live until the clock runs out
+      const t = P.team === T_BLUE ? P : S.find(q => q.team === T_BLUE && !q.isPlayer);
+      t.isTarget = true; this.hunted = t; special(t, 1.6, t.isPlayer ? 'You (target)' : 'The Target'); t.speedBase *= 1.1; t.regenMul = 0.5;
+    } else if (mo === 'champion') { // each side has a champion; when one falls, that side loses
+      this.champs = {};
+      for (const team of [T_BLUE, T_RED]) {
+        const c = team === P.team ? P : S.filter(q => q.team === team && !q.isPlayer)[0];
+        c.isChampion = true; this.champs[team] = c; special(c, 1.8, c.isPlayer ? 'You (champion)' : (team === T_BLUE ? 'Blue' : 'Red') + ' Champion'); c.regenMul = 0.6;
+      }
+    } else if (mo === 'kingstandard') {
+      const q = this.nav.nearestFreePoint(0, 0); this.banner = { x: q.x, z: q.z, y: 0, home: { x: q.x, z: q.z }, carrier: null, team: 0, cd: 1, t: 0 };
+    } else if (mo === 'laststand') { // the Red defenders hold the centre-most point; Blue must take and hold it
+      let bp = this.points[0], bd = 1e9; for (const p of this.points) { const d = Math.hypot(p.x, p.z); if (d < bd) { bd = d; bp = p; } }
+      bp.r = Math.max(bp.r, 10); bp.owner = T_RED; bp.v = -100; this.points = [bp]; bp.idx = 0; this.stand = bp;
+      for (const q of S) if (q.team === T_RED) q.spawn();
+    }
+  }
+  stepMode(dt) {
+    const b = this.banner;
+    if (this.mode === 'kingstandard' && b) {
+      if (b.carrier && !b.carrier.alive) this.dropBanner();
+      if (!b.carrier) {
+        b.cd -= dt;
+        if (b.cd <= 0) { let best = null, bd = 2.4; for (const s of this.soldiers) { if (!s.alive || s.admin || s.mount || Math.abs(s.y - b.y) > 2) continue; const d = Math.hypot(s.x - b.x, s.z - b.z); if (d < bd) { bd = d; best = s; } } if (best) { b.carrier = best; best.carrying = true; b.team = best.team; this.emit('bannerup', best); } }
+      } else { b.x = b.carrier.x; b.z = b.carrier.z; b.y = b.carrier.y; b.t += dt; while (b.t >= 1) { b.t -= 1; this.scores[b.team] += 1; this.checkEnd(); } }
+    }
+    if (this.mode === 'laststand' && this.stand && this.stand.owner === T_BLUE) this.finish(T_BLUE);
+  }
+  dropBanner() { const b = this.banner; if (!b || !b.carrier) return; b.carrier.carrying = false; b.carrier = null; b.cd = 1.5; this.emit('bannerdrop', b); }
+  modeGoal(s) {
+    const mo = this.mode, S = this.soldiers;
+    if (mo === 'manhunt') {
+      const t = this.hunted; if (!t || !t.alive) return null;
+      if (s === t) { // the hunted AI runs from the nearest hunter
+        let e = null, bd = 1e9; for (const o of S) if (o.alive && o.team !== s.team) { const d = Math.hypot(o.x - s.x, o.z - s.z); if (d < bd) { bd = d; e = o; } }
+        if (!e) return null; const dd = bd || 1, lim = this.def.half - 12, q = this.nav.nearestFreePoint(clamp(s.x + (s.x - e.x) / dd * 24, -lim, lim), clamp(s.z + (s.z - e.z) / dd * 24, -lim, lim));
+        return { x: q.x, z: q.z, near: 3, sprint: bd < 30 };
+      }
+      return s.team === t.team ? { x: t.x, z: t.z, near: 7 } : { x: t.x, z: t.z, near: 2, sprint: true };
+    }
+    if (mo === 'champion') {
+      const own = this.champs[s.team], foe = this.champs[s.team === T_BLUE ? T_RED : T_BLUE];
+      if (s.isChampion) return null;
+      if (own && own.alive && s.id % 3 === 0) return { x: own.x, z: own.z, near: 6 };
+      return foe && foe.alive ? { x: foe.x, z: foe.z, near: 2, sprint: true } : null;
+    }
+    if (mo === 'kingstandard' && this.banner) {
+      const b = this.banner;
+      if (!b.carrier) return { x: b.x, z: b.z, near: 2.2, sprint: true };
+      if (b.carrier === s) { const sp = this.def.spawn[s.team]; return { x: sp.x, z: sp.z, near: 14 }; }
+      if (b.carrier.team === s.team) return s.id % 2 ? { x: b.x, z: b.z, near: 7 } : null;
+      return { x: b.x, z: b.z, near: 2, sprint: true };
+    }
+    return null;
   }
   on(fn) { this.listeners.push(fn); }
   emit(type, data) { for (const f of this.listeners) f(type, data); }
@@ -1264,6 +1573,12 @@ class Match {
         if (ok) return { x, z: zz, y: this.def.roofY };
       }
       return { x: 0, z: 40, y: this.def.roofY };
+    }
+    if (this.mode === 'laststand' && team === T_RED && this.stand) {
+      const nav = this.nav, st = this.stand;
+      if (this.mainComp === undefined) this.mainComp = nav.comp[nav.nearestFreeCell(nav.cellOf(this.def.spawn[T_BLUE].x, this.def.spawn[T_BLUE].z))];
+      for (let tries = 0; tries < 40; tries++) { const a = rnd(0, 6.283), r = rnd(3, st.r * 1.3), x = st.x + Math.cos(a) * r, zz = st.z + Math.sin(a) * r; if (nav.pointBlocked(x, zz, 1.0) || nav.comp[nav.cellOf(x, zz)] !== this.mainComp) continue; return { x, z: zz }; }
+      return nav.nearestFreePoint(st.x, st.z);
     }
     const z = this.def.spawn[team];
     for (let tries = 0; tries < 24; tries++) {
@@ -1439,11 +1754,11 @@ class Match {
     for (const e of this.soldiers) {
       if (!e.alive || e === a) continue; // friendly fire: allies in the arc are hit too
       const dx = e.x - a.x, dz = e.z - a.z, d = Math.hypot(dx, dz);
-      if (d > w.reach + 0.5) continue;
+      if (d > w.reach + 0.55 + Math.min(0.6, e.speed * 0.12)) continue; // a target stepping away is still reachable
       if (Math.abs(e.y - a.y) > 1.3) continue;
       if (d > 0.7) {
         const dot = (dx * fx + dz * fz) / d;
-        const arc = a.isPlayer ? w.arc + 0.15 : w.arc;
+        const arc = a.isPlayer ? w.arc + 0.3 : w.arc + 0.08;
         if (Math.acos(clamp(dot, -1, 1)) > arc) continue;
       }
       if (d > 1 && !this.nav.los(a.x, a.z, e.x, e.z)) continue;
@@ -1464,7 +1779,11 @@ class Match {
     let tx, ty, tz;
     if (aim && (aim.x - a.x) * fx + (aim.z - a.z) * fz > 1) { tx = aim.x; ty = aim.y; tz = aim.z; }
     else { tx = sx + fx * 30; ty = sy; tz = sz + fz * 30; }
-    const dx = tx - sx, dz = tz - sz, hd = Math.hypot(dx, dz) || 0.01;
+    let dx = tx - sx, dz = tz - sz, hd = Math.hypot(dx, dz) || 0.01;
+    if (!lob && w.spread) { // accuracy: spread widens when moving and with a short draw, and is tighter for a held aim
+      const sprd = w.spread * (1.5 - 0.7 * power) + a.speed * (w.xbow ? 0.004 : 0.0075) + (a.sprinting ? 0.02 : 0), ay = Math.atan2(dx, dz) + rnd(-sprd, sprd);
+      dx = Math.sin(ay) * hd; dz = Math.cos(ay) * hd; ty += rnd(-sprd, sprd) * hd * 0.7;
+    }
     if (lob) {
       // catapult stones fly in a high arc: pick the launch speed for a ~50 degree lob onto the aim point
       const th = 0.87, c = Math.cos(th), tn = Math.tan(th), den = 2 * c * c * (hd * tn - (ty - sy));
@@ -1476,7 +1795,7 @@ class Match {
     let dy = ty - sy, len = Math.hypot(hd, dy);
     for (let i = 0; i < 3; i++) { const t = len / sp; dy = (ty - sy) + 0.5 * g * t * t; dy = Math.min(dy, hd * 2.2); len = Math.hypot(hd, dy); }
     const k = sp / len;
-    const ar = { id: this.arrowSeq++, x: sx, y: sy, z: sz, vx: dx * k, vy: dy * k, vz: dz * k, owner: a, team: a.team, dmg: w.dmg * (0.35 + 0.65 * power), life: 4, stuck: 0, fire: !!((w.big && !w.stone) || (a.ai.post && a.ai.post.fire)), big: !!w.big, stone: !!w.stone };
+    const ar = { id: this.arrowSeq++, x: sx, y: sy, z: sz, vx: dx * k, vy: dy * k, vz: dz * k, owner: a, team: a.team, dmg: w.dmg * (0.35 + 0.65 * power), life: 4, trav: 0, xb: !!w.xbow, stuck: 0, fire: !!((w.big && !w.stone) || (a.ai.post && a.ai.post.fire)), big: !!w.big, stone: !!w.stone };
     this.arrows.push(ar);
     if (this.arrows.length > 220) this.arrows.shift();
     this.emit('shoot', { a, ar });
@@ -1490,14 +1809,15 @@ class Match {
       if (ar.life <= 0) { A.splice(i, 1); continue; }
       let gone = false;
       for (let k = 0; k < N && !gone; k++) {
-        ar.vy -= ARROW_G * h; ar.x += ar.vx * h; ar.y += ar.vy * h; ar.z += ar.vz * h;
+        ar.vy -= ARROW_G * h; ar.x += ar.vx * h; ar.y += ar.vy * h; ar.z += ar.vz * h; ar.trav += Math.hypot(ar.vx, ar.vz) * h;
         for (const e of this.soldiers) {
           if (!e.alive || e === ar.owner) continue; // friendly fire: arrows hit anyone but the shooter
           const ey = ar.y - e.y - (e.horse ? 0.8 : 0); if (ey < -0.1 || ey > 1.95) continue;
           const ex = ar.x - e.x, ez = ar.z - e.z;
           if (ex * ex + ez * ez > 0.2) continue;
           const o = ar.owner, head = ey > 1.52;
-          const dmg = ar.dmg * (head ? 1.6 : 1) * rnd(0.92, 1.08) * (o.isPlayer ? 1 : (o.team !== this.cfg.team ? this.diff.dmg : 1));
+          const fall = ar.big ? 1 : clamp(1.18 - Math.max(0, ar.trav - 38) / 90, 0.5, 1) * (ar.trav < 5 ? 0.75 : 1); // far shots lose punch, point-blank shots are clumsy
+          const dmg = ar.dmg * (head ? (this.mode === 'archers' ? 2.1 : 1.6) : 1) * fall * rnd(0.92, 1.08) * (o.isPlayer ? 1 : (o.team !== this.cfg.team ? this.diff.dmg : 1));
           this.damage(e, dmg, o, ar.vx, ar.vz, { arrow: true, pos: { x: ar.x, y: ar.y, z: ar.z }, head });
           if (ar.fire && e.alive) e.burnT = 3; if (ar.stone) this.splash(ar);
           gone = true; break;
@@ -1531,14 +1851,22 @@ class Match {
     // a called soldier who is struck in melee (not by an arrow, bolt or stone) breaks off to hunt down whoever hit him
     if (!arrow && a !== e && a.team !== e.team && !e.isPlayer && e.ai.cmd === 'follow') { e.ai.avenge = a; e.ai.avT = this.time; }
     if (a.team === e.team) dmg *= 0.7; // friendly fire hurts, a little less than an enemy blow
+    dmg *= e.armor || 1;
+    if (!arrow && e.weapon.ranged && !e.mount) dmg *= 1.15; // a bow or crossbow in melee range is a poor guard
     const d = Math.hypot(dx, dz) || 1, nx = dx / d, nz = dz / d;
     // block check: defender faces the attacker
     const ex = Math.sin(e.yaw), ez = Math.cos(e.yaw);
     const facing = (-nx * ex + -nz * ez) > 0.3;
     const mid = arrow && opt.pos ? opt.pos : { x: (a.x + e.x) / 2, y: 1.3, z: (a.z + e.z) / 2 };
-    e.lastCombat = a.lastCombat = this.time;
+    e.lastCombat = a.lastCombat = this.time; e.lastDmgT = this.elapsed;
+    if (e.blocking && facing && e.stamina > 0 && !arrow && e.blockT < 0.2 && a !== e && (e.isPlayer || Math.random() < 0.4 * (e.ai.skill || 1))) {
+      // parry: the guard went up just as the blow landed. No damage, the attacker is thrown off balance and open
+      e.stamina = Math.min(100, e.stamina + 12); a.stagger = Math.max(a.stagger, 0.85); a.atkT = -1; a.cdT = Math.max(a.cdT, 0.7); a.vx -= nx * 3; a.vz -= nz * 3; a.drawT = -1;
+      this.emit('parry', { a, e, pos: mid, friendly: a.team === e.team });
+      return;
+    }
     if (e.blocking && facing && e.stamina > 0) {
-      e.stamina -= dmg * (arrow ? 0.4 : 0.7);
+      e.stamina -= dmg * (arrow ? 0.4 : 0.7) * (e.cdef && e.cdef.shield ? 0.75 : 1);
       e.hp -= dmg * 0.08;
       this.emit('block', { a, e, pos: mid, friendly: a.team === e.team });
       if (e.stamina <= 0) { e.stamina = 0; e.stagger = 0.9; e.blocking = false; e.atkT = -1; this.emit('guardbreak', { a, e, pos: mid }); }
@@ -1564,8 +1892,11 @@ class Match {
     const friendly = !!(a && a !== e && a.team === e.team);
     if (a && a !== e) {
       if (friendly) a.teamKills++; // killing a teammate scores nothing
-      else { a.kills++; this.addScore(a.team, 1, true); }
+      else { a.kills++; if (this.mode === 'kingstandard') { if (e.carrying) this.addScore(a.team, 3); } else this.addScore(a.team, 1, true); }
     }
+    if (e.carrying) this.dropBanner();
+    if (e.isTarget) this.finish(T_RED);
+    if (e.isChampion) this.finish(e.team === T_BLUE ? T_RED : T_BLUE);
     this.emit('kill', { k: a, v: e, friendly });
     if (e.isKing) this.finish(T_BLUE);
   }
@@ -1616,10 +1947,13 @@ class Match {
     for (const s of S) if (s.alive && !s.admin) resolveObstacles(this.def, s, 0.5);
     if (this.mode === 'siege') { this.stepSiege(dt); this.stepHorses(dt); this.stepMounts(dt); }
     this.stepArrows(dt);
-    if (this.mode === 'conquest') this.updatePoints(dt);
+    if (this.mode === 'conquest' || this.mode === 'laststand') this.updatePoints(dt);
+    this.stepMode(dt);
     if (this.time <= 0 && !this.ended) {
       this.time = 0;
-      if (this.mode === 'siege') this.finish(T_RED);
+      if (this.mode === 'siege' || this.mode === 'laststand') this.finish(T_RED);
+      else if (this.mode === 'manhunt') this.finish(T_BLUE); // the hunted survived
+      else if (this.mode === 'champion') { const f = (t) => { const c = this.champs[t]; return c.alive ? c.hp / c.maxHp : 0; }, a = f(T_BLUE), b2 = f(T_RED); this.finish(Math.abs(a - b2) < 0.01 ? 0 : a > b2 ? T_BLUE : T_RED); }
       else if (this.ffa) {
         // most eliminations wins; fewer deaths breaks a tie; still level is a draw
         let bk = -1, bd = 0, w = 0, tie = false;
@@ -1644,8 +1978,9 @@ class Match {
       }
       p.bCount = b; p.rCount = r;
       const prevOwner = p.owner;
-      if (b > 0 && r === 0) p.v = Math.min(100, p.v + 12 * Math.min(b, 3) * dt);
-      else if (r > 0 && b === 0) p.v = Math.max(-100, p.v - 12 * Math.min(r, 3) * dt);
+      const cr = this.mode === 'laststand' ? 0.4 : 1; // taking the last stand is slow work
+      if (b > 0 && r === 0) p.v = Math.min(100, p.v + 12 * cr * Math.min(b, 3) * dt);
+      else if (r > 0 && b === 0) p.v = Math.max(-100, p.v - 12 * cr * Math.min(r, 3) * dt);
       if (p.v >= 100) p.owner = T_BLUE;
       else if (p.v <= -100) p.owner = T_RED;
       else if (p.owner === T_BLUE && p.v <= 0) p.owner = 0;
@@ -1668,7 +2003,7 @@ class Match {
 
   /* ----- strategy ----- */
   assignObjectives(team) {
-    if (this.mode !== 'conquest') return;
+    if (this.mode !== 'conquest' && this.mode !== 'laststand') return;
     const ais = this.soldiers.filter(s => s.team === team && s.alive && !s.isPlayer);
     const owned = this.points.filter(p => p.owner === team), notOwned = this.points.filter(p => p.owner !== team);
     const counts = this.points.map(() => 0);
@@ -1733,7 +2068,7 @@ function pickTarget(m, s) {
     return;
   }
   const holding = ai.tw && ai.tw.st === 'hold';
-  const aggro = holding ? 36 : m.mode !== 'conquest' ? (s.weapon.big ? 60 : 45) : ai.role === 'defend' ? 18 : 24;
+  const aggro = holding ? 36 : (m.mode !== 'conquest' && m.mode !== 'laststand') ? (s.weapon.big ? 60 : 45) : ai.role === 'defend' ? 18 : 24;
   if (ai.target && ai.target.alive && !ai.target.admin) {
     const d = Math.hypot(ai.target.x - s.x, ai.target.z - s.z);
     if (d < aggro * 1.5 && (d < 9 || (Math.abs(ai.target.y - s.y) > 3 || s.y > 3 ? clear3(m, s, ai.target) : m.nav.los(s.x, s.z, ai.target.x, ai.target.z)))) {
@@ -1751,7 +2086,7 @@ function pickTarget(m, s) {
     const high = Math.abs(e.y - s.y) > 3;
     if (high && !(s.weapon.ranged && d > 8)) continue;
     if (d > 8 && (high || s.y > 3 ? !clear3(m, s, e) : !m.nav.los(s.x, s.z, e.x, e.z))) continue;
-    let sc = d - (e.isPlayer ? 3 : 0);
+    let sc = d - (e.isPlayer ? 3 : 0) - (e.isTarget || e.isChampion || e.carrying ? 25 : 0);
     if (e.lastAttacker && e.lastAttacker.alive === false) sc += 0;
     if (sc < bs) { bs = sc; best = e; }
   }
@@ -1824,12 +2159,12 @@ function aiBow(m, s, tgt, d, dx, dz, dt, diff, hold) {
   a.x = tgt.x + tgt.vx * t + rnd(-err, err) * 0.5; a.z = tgt.z + tgt.vz * t + rnd(-err, err) * 0.5; a.y = tgt.y + 1.15 + rnd(-err, err) * 0.4;
   inp.aim = a;
   const facing = Math.abs(angDiff(s.yaw, inp.yaw)) < 0.35;
-  const range = hold ? (w.big ? 60 : 34) : 28;
+  const range = hold ? (w.big ? 60 : 34) : w.xbow ? 36 : 28;
   if (s.drawT >= 0) {
     // a teammate walked into the line of fire: let the arrow go unless careless
     if (!ai.reck && (!los || laneBlocked(m, s, a))) { s.drawT = -1; s.cdT = 0.3; }
     else inp.attack = s.drawT < ai.drawGoal;
-  } else if (los && d <= range && facing && s.cdT <= 0 && s.stagger <= 0 && Math.random() < 3 * dt * diff.aggr * ai.skill) {
+  } else if (los && d <= range && facing && s.cdT <= 0 && (!w.xbow || s.loaded) && s.stagger <= 0 && Math.random() < 3 * dt * diff.aggr * ai.skill) {
     ai.reck = Math.random() < 0.1;
     if (ai.reck || !laneBlocked(m, s, a)) { ai.drawGoal = w.draw * rnd(0.7, 1); inp.attack = true; }
   }
@@ -2085,8 +2420,11 @@ function aiThink(m, s, dt) {
   } else {
     s.input.aim = null;
     // objective behaviour
-    const p = m.mode === 'conquest' && ai.obj >= 0 ? m.points[ai.obj] : null;
-    if (ai.cmd ? cmdMove(m, s, dt) : m.mode === 'siege' && siegeGoal(m, s, dt)) { /* following an order, or siege duty */ } else if (!p) {
+    const p = (m.mode === 'conquest' || m.mode === 'laststand') && ai.obj >= 0 ? m.points[ai.obj] : null;
+    if (ai.cmd ? cmdMove(m, s, dt) : m.mode === 'siege' && siegeGoal(m, s, dt)) { /* following an order, or siege duty */ } else if (!p && m.modeGoal && (ai.mg = m.modeGoal(s))) {
+      const g = ai.mg, dd = Math.hypot(g.x - s.x, g.z - s.z);
+      if (dd > (g.near || 3)) { steerTo(m, s, g.x, g.z, dt, true); inp.sprint = !!g.sprint || dd > 30; }
+    } else if (!p) {
       // hunt the nearest enemy anywhere
       let e = null, bd = 1e9;
       for (const o of m.soldiers) { if (!o.alive || o.team === s.team || o.admin) continue; const d = Math.hypot(o.x - s.x, o.z - s.z); if (d < bd) { bd = d; e = o; } }
@@ -2120,7 +2458,7 @@ function aiThink(m, s, dt) {
   }
 }
 
-return { T_BLUE, T_RED, WEAPONS, DIFF, buildMap, Nav, Match, Soldier, resolveObstacles, distToObs, groundAt, ladderAt, rayClear, angDiff, clamp };
+return { T_BLUE, T_RED, WEAPONS, CLASSES, CLASS_IDS, DIFF, buildMap, Nav, Match, Soldier, resolveObstacles, distToObs, groundAt, ladderAt, rayClear, angDiff, clamp };
 })();
 if (typeof module !== 'undefined') module.exports = Sim;
 
@@ -2219,7 +2557,7 @@ function regionName(id) { for (const r of REGIONS) if (r.id === id) return r.nam
 // kind decides the 3D structure; major/castle/village/poi decides the map icon; battle links to an existing battle map; future marks places meant to become battle maps later
 const LOCS = [
   { id: 'snow_fortress', name: 'Snow Fortress', kind: 'fortress', icon: 'major', px: 1030, py: 146, r0: 128, r1: 200, battle: 'fortress', blurb: 'A great fortress on the snowy southern shelf of the northern mountains, just east of North Pass. Seat of the northern territory. Its siege is fought on the Fortress battle map.' },
-  { id: 'central_palace', name: 'Central Palace', kind: 'palace', icon: 'major', px: 763, py: 405, r0: 105, r1: 165, future: true, blurb: 'The royal residence at the heart of the continent, one of the largest structures in the world.' },
+  { id: 'central_palace', name: 'Central Palace', kind: 'palace', icon: 'major', px: 763, py: 405, r0: 105, r1: 165, battle: 'palace', blurb: 'The royal residence at the heart of the continent, one of the largest structures in the world.' },
   { id: 'capital_town', name: 'Capital Town', kind: 'town', icon: 'major', px: 790, py: 619, r0: 190, r1: 250, future: true, blurb: 'A large walled capital with marketplaces, streets and a cathedral, below the palace.' },
   { id: 'southern_castle', name: 'Southern Castle', kind: 'castle', icon: 'castle', px: 1020, py: 775, r0: 88, r1: 135, battle: 'castle', hill: 9, blurb: 'A hilltop castle guarding the south. Fought over on the Castle Grounds battle map.' },
   { id: 'southern_village', name: 'Southern Village', kind: 'village', icon: 'village', px: 617, py: 779, r0: 82, r1: 125, battle: 'village', blurb: 'A market village with a church and a mill. Fought over on the Medieval Village battle map.' },
@@ -3306,6 +3644,80 @@ function labelTexture(ch) {
   return new THREE.CanvasTexture(c);
 }
 // purely visual extras for The Fortress (no collision): buttresses, string courses, banners, door frame, braziers, camp fires, snow drifts
+// purely visual dressing for Central Palace: pitched roofs and dome, marble floor, throne and dais, banners, hedges, columns, flower beds, fountains
+function palaceDecor(group, def) {
+  const add = (geo, mat, x, y, z, ry) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); if (ry) m.rotation.y = ry; group.add(m); return m; };
+  const mk = (c, o) => new THREE.MeshLambertMaterial(Object.assign({ color: c }, o || {}));
+  const crimson = mk(0x8d1f2a, { side: THREE.DoubleSide }), gold = MAT.gold, marble = mk(0xd9d5ca), hedgeM = mk(0x2b5e2e), hedgeT = mk(0x336a35), soil = mk(0x4a3322);
+  const PH = 11, RT = PH + 1.2;
+  // marble floor with a checker pattern, and a red carpet to the throne
+  { const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'); g.fillStyle = '#d8d3c6'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#9d9a92'; g.fillRect(0, 0, 32, 32); g.fillRect(32, 32, 32, 32);
+    const tx = new THREE.CanvasTexture(c); tx.wrapS = tx.wrapT = THREE.RepeatWrapping; tx.repeat.set(18, 12);
+    const fg = new THREE.PlaneGeometry(72, 48); worldGeos.push(fg); const fl = new THREE.Mesh(fg, new THREE.MeshLambertMaterial({ map: tx })); fl.rotation.x = -Math.PI / 2; fl.position.set(0, 0.075, 0); group.add(fl);
+    const cg = new THREE.PlaneGeometry(5, 34); worldGeos.push(cg); const cp = new THREE.Mesh(cg, crimson); cp.rotation.x = -Math.PI / 2; cp.position.set(0, 0.1, 6); group.add(cp);
+    for (const sx of [-1, 1]) add(boxG(0.25, 0.02, 34), gold, sx * 2.6, 0.105, 6); }
+  // steps in front of the portico
+  for (let k = 0; k < 3; k++) add(boxG(36 + k * 2, 0.22, 2.2), MAT.stone, 0, 0.11 + k * 0.0, 31.4 + k * 1.1 - 0.0).position.y = 0.11;
+  // roofs
+  for (const sx of [-1, 1]) add(roofGeo(24, 50, 5, 0.9), MAT.slate, sx * 25, RT, 0);
+  add(roofGeo(32, 50, 8, 0.9), MAT.slate, 0, RT, 0);
+  add(roofGeo(36, 7, 3.2, 0.3), MAT.slate, 0, 10, 27.5);
+  add(cgeo('pdrum', () => new THREE.CylinderGeometry(5, 5.4, 7, 20)), MAT.stone, 0, RT + 3, 0);
+  add(cgeo('pdome', () => new THREE.SphereGeometry(5.2, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2)), gold, 0, RT + 6.5, 0);
+  add(cgeo('pspire', () => new THREE.CylinderGeometry(0.05, 0.25, 4, 6)), gold, 0, RT + 13, 0);
+  add(boxG(2.6, 1.4, 0.05), crimson, 1.5, RT + 14.5, 0);
+  // palace corner turrets get gold pennants
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { add(boxG(0.1, 2.6, 0.1), MAT.wood, sx * 36.5, 15 + 3.5 + 2.4, sz * 24.5); add(boxG(1.7, 0.85, 0.04), gold, sx * 36.5 + 0.95, 15 + 3.5 + 3.4, sz * 24.5); }
+  // window frames
+  for (const w of (def.windows || [])) {
+    const wz = w.ax ? w.z : 0, wx = w.ax ? 0 : w.x, s = w.ax ? Math.sign(w.z) : Math.sign(w.x);
+    if (w.ax) { for (const o of [-0.5, 0.5]) { add(boxG(2.9, 0.25, 0.4), MAT.stoneDark, w.x, 2.2, w.z + s * 1.15 * o + s * 0.4 * 0).position.z = w.z + o * 2.1; add(boxG(2.9, 0.3, 0.4), MAT.stoneDark, w.x, 4.9, w.z + o * 2.1); } }
+    else for (const o of [-0.5, 0.5]) { add(boxG(0.4, 0.25, 2.9), MAT.stoneDark, w.x + o * 2.1, 2.2, w.z); add(boxG(0.4, 0.3, 2.9), MAT.stoneDark, w.x + o * 2.1, 4.9, w.z); }
+  }
+  // banners on the palace front and back, and on the curtain wall
+  const banner = (x, y, z, w, h, ry) => { add(boxG(w, h, 0.06), crimson, x, y, z, ry); add(boxG(w + 0.1, 0.12, 0.09), gold, x, y + h / 2, z, ry); add(boxG(w * 0.45, h * 0.35, 0.07), gold, x, y + h * 0.1, z, ry); };
+  for (const x of [-13.5, -5.5, 5.5, 13.5, -21, 21]) { banner(x, 7.2, 24.1, 1.5, 4.4, 0); }
+  for (const x of [-13, 13, -30, 30]) banner(x, 7.2, -24.1, 1.5, 4.4, 0);
+  for (const sz of [-1, 1]) for (const x of [-70, -62, -40, -30, -22, 22, 30, 40, 62, 70]) banner(x, 6.4, sz * 97.9, 1.3, 4, 0);
+  for (const sx of [-1, 1]) for (const z of [-80, -66, -42, -28, -15, 15, 28, 42, 66, 80]) banner(sx * 81.9, 6.4, z, 1.3, 4, Math.PI / 2);
+  for (const sz of [-1, 1]) for (const sx of [-1, 1]) banner(sx * 8.5, 6.4, sz * 103.6, 2, 5, 0);
+  // throne room: dais, throne, banners, braziers, chandeliers
+  add(boxG(14, 0.18, 4.8), MAT.stone, 0, 0.09, -9.6); add(boxG(10, 0.18, 3.4), MAT.stoneDark, 0, 0.27, -10.3);
+  { const tx = 0, tz = -10.3;
+    add(boxG(2.4, 0.9, 1.9), crimson, tx, 0.9, tz); add(boxG(2.6, 3.8, 0.4), crimson, tx, 2.2, tz - 0.9); add(boxG(2.9, 0.3, 0.5), gold, tx, 4.2, tz - 0.9); add(boxG(0.3, 1.4, 1.9), gold, tx - 1.3, 1.0, tz); add(boxG(0.3, 1.4, 1.9), gold, tx + 1.3, 1.0, tz); add(boxG(0.4, 1, 0.4), gold, tx, 4.7, tz - 0.9); }
+  for (const x of [-9, -4.5, 4.5, 9]) banner(x, 6, -11.1, 2, 6.5, 0);
+  for (const sx of [-1, 1]) for (const z of [-4, 6]) banner(sx * 13.6, 6, z, 2, 6.5, Math.PI / 2);
+  const brazier = (x, z) => { add(cgeo('brP', () => new THREE.CylinderGeometry(0.3, 0.4, 1.3, 8)), MAT.stoneDark, x, 0.65, z); add(cgeo('brB', () => new THREE.CylinderGeometry(0.55, 0.3, 0.4, 8)), MAT.steelDark, x, 1.5, z); add(cgeo('brF', () => new THREE.ConeGeometry(0.34, 0.9, 6)), MAT.flame, x, 2.05, z); };
+  for (const [x, z] of [[-5, -8], [5, -8], [-3, 19], [3, 19], [-7, 31], [7, 31], [-5, 104], [5, 104], [-5, -104], [5, -104]]) brazier(x, z);
+  for (const [x, z] of [[0, -2], [0, 6], [0, 17], [-25, 11], [25, 11], [-25, -11], [25, -11]]) { add(boxG(0.05, 3, 0.05), MAT.steelDark, x, PH - 1.5, z); add(cgeo('chR', () => new THREE.CylinderGeometry(1.1, 1.1, 0.15, 10)), gold, x, PH - 3, z); add(cgeo('chF', () => new THREE.ConeGeometry(0.25, 0.6, 6)), MAT.flame, x, PH - 2.6, z); }
+  // columns
+  const capG = boxG(2.2, 0.5, 2.2), baseG = boxG(2.0, 0.4, 2.0);
+  for (const o of def.obs) if (o.kind === 'pillar') {
+    add(cgeo('pcol' + o.r + ',' + o.h, () => new THREE.CylinderGeometry(o.r * 0.82, o.r, o.h, 14)), marble, o.x, o.h / 2, o.z);
+    add(boxG(o.r * 2.5, 0.5, o.r * 2.5), MAT.stone, o.x, o.h - 0.25, o.z); add(boxG(o.r * 2.3, 0.4, o.r * 2.3), MAT.stone, o.x, 0.2, o.z);
+  } else if (o.kind === 'hedge') {
+    add(texBox(o.w, o.h, o.d, 0.5), hedgeM, o.x, o.h / 2, o.z); add(boxG(o.w - 0.4, 0.3, o.d - 0.1), hedgeT, o.x, o.h + 0.1, o.z);
+  }
+  // fountains: central column and upper bowl
+  for (const o of def.obs) if (o.kind === 'well' && o.r > 2) {
+    const big = o.r > 4; add(cgeo('fcol' + big, () => new THREE.CylinderGeometry(0.35, 0.45, big ? 3.2 : 2.2, 10)), MAT.stone, o.x, big ? 2.1 : 1.6, o.z);
+    add(cgeo('fbowl' + big, () => new THREE.CylinderGeometry(big ? 2.4 : 1.3, big ? 1.0 : 0.6, 0.5, 14)), MAT.stone, o.x, big ? 3.6 : 2.5, o.z); add(cgeo('fw' + big, () => new THREE.CylinderGeometry(big ? 2.1 : 1.1, big ? 2.1 : 1.1, 0.05, 14)), MAT.water, o.x, big ? 3.88 : 2.78, o.z);
+    add(cgeo('frim' + o.r, () => new THREE.CylinderGeometry(o.r * 1.1, o.r * 1.1, 0.25, 18)), MAT.stoneDark, o.x, 0.12, o.z);
+  }
+  // flower beds
+  { const cols = [0xd84a5a, 0xf0c63a, 0xb06ad8, 0xf2f0e6], mats = cols.map(c => mk(c)), lists = cols.map(() => []);
+    for (const b of (def.beds || [])) {
+      add(boxG(b.w, 0.3, b.d), soil, b.x, 0.15, b.z); add(boxG(b.w + 0.6, 0.35, 0.3), MAT.stoneDark, b.x, 0.17, b.z - b.d / 2 - 0.15); add(boxG(b.w + 0.6, 0.35, 0.3), MAT.stoneDark, b.x, 0.17, b.z + b.d / 2 + 0.15);
+      add(boxG(0.3, 0.35, b.d), MAT.stoneDark, b.x - b.w / 2 - 0.15, 0.17, b.z); add(boxG(0.3, 0.35, b.d), MAT.stoneDark, b.x + b.w / 2 + 0.15, 0.17, b.z);
+      let i = 0; for (let x = -b.w / 2 + 0.8; x <= b.w / 2 - 0.5; x += 1.1) for (let z = -b.d / 2 + 0.8; z <= b.d / 2 - 0.5; z += 1.1) lists[(i++ + ((x * 3) | 0)) & 3].push([b.x + x, 0.5, b.z + z]);
+    }
+    lists.forEach((l, k) => { if (!l.length) return; const im = new THREE.InstancedMesh(cgeo('flw', () => new THREE.SphereGeometry(0.38, 6, 5)), mats[k], l.length), d = new THREE.Object3D(); l.forEach((p, i) => { d.position.set(p[0], p[1], p[2]); d.updateMatrix(); im.setMatrixAt(i, d.matrix); }); group.add(im); });
+  }
+  // topiary cones along the garden avenue
+  for (const sx of [-1, 1]) for (const z of [-94, -78, -42, -28]) { add(cgeo('topi', () => new THREE.ConeGeometry(0.9, 2.6, 8)), hedgeM, sx * 6.2, 1.3 + 0.2, z); add(boxG(0.8, 0.5, 0.8), MAT.stoneDark, sx * 6.2, 0.25, z).position.y = 0.25; }
+  // lamp posts along the courtyard paving
+  for (const sx of [-1, 1]) for (const z of [36, 52, 84]) { add(boxG(0.14, 3.4, 0.14), MAT.steelDark, sx * 8, 1.7, z); add(cgeo('lampF', () => new THREE.ConeGeometry(0.3, 0.7, 6)), MAT.flame, sx * 8, 3.7, z); }
+}
 function fortressDecor(group, def) {
   const WH = 12, KH = 10;
   const add = (geo, mat, x, y, z, ry) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); if (ry) m.rotation.y = ry; group.add(m); return m; };
@@ -3380,6 +3792,7 @@ function buildWorld(mapId, isFfa) {
   const treeSpots = [];
   for (const o of def.obs) {
     if (o.kind === 'tree') { treeSpots.push({ x: o.x, z: o.z, s: o.s || 1 }); continue; }
+    if (o.kind === 'hedge' || o.kind === 'pillar' || o.kind === 'throne') continue; // drawn by palaceDecor
     if (o.t === 'box') {
       const { x, z, w, d, h } = o; let mesh;
       switch (o.kind) {
@@ -3477,6 +3890,7 @@ function buildWorld(mapId, isFfa) {
     }
   }
   if (def.id === 'fortress') fortressDecor(group, def);
+  if (def.id === 'palace') palaceDecor(group, def);
   // small corner pinnacles on the bell towers
   for (const d of (def.decor || [])) {
     const pg = cgeo('pin', () => new THREE.ConeGeometry(0.55, 2.6, 4));
@@ -3601,7 +4015,7 @@ function renderMapBackdrop(def) {
   for (const o of def.obs) {
     if (o.y0 >= 1.9) continue;
     if (o.kind === 'tree') { g.fillStyle = '#2f5a30'; g.beginPath(); g.arc(X(o.x), Z(o.z), 1.6 * k * (o.s || 1), 0, 7); g.fill(); continue; }
-    g.fillStyle = o.kind === 'house' ? '#b38b5a' : o.kind === 'fence' ? '#3a3835' : o.kind === 'barricade' || o.kind === 'crate' ? '#6b482a' : '#9a968d';
+    g.fillStyle = o.kind === 'house' ? '#b38b5a' : o.kind === 'hedge' ? '#2f6a32' : o.kind === 'throne' ? '#8d1f2a' : o.kind === 'fence' ? '#3a3835' : o.kind === 'barricade' || o.kind === 'crate' ? '#6b482a' : '#9a968d';
     if (o.t === 'box') g.fillRect(X(o.x - o.w / 2), Z(o.z - o.d / 2), o.w * k, o.d * k);
     else { g.beginPath(); g.arc(X(o.x), Z(o.z), o.r * k, 0, 7); g.fill(); }
   }
@@ -3790,6 +4204,21 @@ function makeWeapon(id) {
     const tip = new THREE.Mesh(cgeo('arrowTipB', () => new THREE.ConeGeometry(0.035, 0.12, 5)), MAT.bright); tip.rotation.x = Math.PI; tip.position.y = -0.88; nock.add(tip);
     nock.position.y = 0.2; g.add(nock);
     g.userData = { string: str, nock };
+  } else if (id === 'knife') {
+    add(boxG(0.055, 0.36, 0.016), MAT.bright, 0, 0.3, 0);
+    add(boxG(0.015, 0.34, 0.02), MAT.steel, 0, 0.3, 0);
+    add(boxG(0.15, 0.03, 0.045), MAT.gold, 0, 0.1, 0);
+    add(boxG(0.04, 0.15, 0.04), MAT.leather, 0, 0.01, 0);
+  } else if (id === 'crossbow') {
+    add(boxG(0.075, 0.78, 0.1), MAT.wood, 0, 0.3, 0);
+    add(boxG(0.09, 0.2, 0.13), MAT.leather, 0, -0.02, 0);
+    add(boxG(0.86, 0.05, 0.06), MAT.wood, 0, 0.64, 0);
+    add(boxG(0.1, 0.04, 0.1), MAT.steelDark, 0, 0.7, 0);
+    add(boxG(0.05, 0.12, 0.05), MAT.steelDark, 0, 0.12, -0.08);
+    const str = new THREE.Mesh(boxG(0.84, 0.012, 0.012), MAT.bright); str.position.set(0, 0.12, 0); g.add(str);
+    const nock = new THREE.Group(); const bt = new THREE.Mesh(boxG(0.022, 0.52, 0.022), MAT.wood); bt.position.y = 0.4; nock.add(bt);
+    const tp = new THREE.Mesh(cgeo('boltTip', () => new THREE.ConeGeometry(0.03, 0.1, 5)), MAT.bright); tp.position.y = 0.7; nock.add(tp); nock.position.set(0, 0, 0.06); g.add(nock);
+    g.userData = { string: str, nock };
   } else if (id === 'spear') {
     add(boxG(0.05, 2.5, 0.05), MAT.wood, 0, 0.35, 0);
     add(cgeo('spearTip', () => new THREE.ConeGeometry(0.07, 0.38, 6)), MAT.bright, 0, 1.78, 0);
@@ -3802,11 +4231,43 @@ function makeWeapon(id) {
   }
   return g;
 }
-const WREST = { sword: -0.9, axe: -0.8, spear: -1.25, bow: -0.6 };
-const WROT = { sword: Math.PI / 2, axe: Math.PI / 2, spear: Math.PI / 2 + 1.25, bow: 0 };
+const WREST = { sword: -0.9, axe: -0.8, spear: -1.25, bow: -0.6, knife: -0.9, crossbow: -0.9 };
+const WROT = { sword: Math.PI / 2, axe: Math.PI / 2, spear: Math.PI / 2 + 1.25, bow: 0, knife: Math.PI / 2, crossbow: 0 };
 const blobG = new THREE.CircleGeometry(0.62, 14);
 const blobM = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28, depthWrite: false });
-function makeSoldierMesh(team, wid, withBlob) {
+let clsMats = null;
+function dressClass(M, cls, tm, add, bp) {
+  const cm = (c) => new THREE.MeshLambertMaterial({ color: c });
+  const C = clsMats || (clsMats = { green: cm(0x3f5a2e), greenD: cm(0x2a3f21), brown: cm(0x6b4a2b), black: cm(0x24242b), maroon: cm(0x74302f), tan: cm(0xb59a6a), grey: cm(0x55585f) });
+  const body = M.body, hide = (m) => m.scale.set(0.001, 0.001, 0.001);
+  M.cls = cls;
+  if (cls === 'knight') { // heavy plate: great helm with plume, big pauldrons, breastplate
+    M.root.scale.set(1.1, 1.04, 1.1); hide(bp[6]); hide(bp[7]); hide(bp[9]); hide(bp[10]);
+    add(body, boxG(0.72, 0.58, 0.46), MAT.bright, 0, 1.3, 0); add(body, boxG(0.74, 0.07, 0.48), MAT.gold, 0, 1.03, 0);
+    add(body, boxG(0.48, 0.5, 0.48), MAT.steel, 0, 1.84, 0); add(body, boxG(0.34, 0.04, 0.06), MAT.dark, 0, 1.84, 0.25); add(body, boxG(0.1, 0.42, 0.5), tm, 0, 2.28, -0.02);
+    for (const sx of [-1, 1]) { add(body, boxG(0.36, 0.22, 0.54), MAT.steelDark, sx * 0.48, 1.64, 0); add(body, boxG(0.38, 0.05, 0.56), MAT.gold, sx * 0.48, 1.76, 0); }
+  } else if (cls === 'archer') { // light: green tunic, hood, quiver
+    M.root.scale.set(0.97, 1, 0.97); hide(bp[2]); hide(bp[6]); hide(bp[7]); hide(bp[8]); hide(bp[9]); hide(bp[10]); M.noShield = true;
+    add(body, boxG(0.56, 0.7, 0.34), C.green, 0, 1.26, 0); add(body, boxG(0.4, 0.38, 0.44), C.greenD, 0, 1.8, -0.03); add(body, boxG(0.3, 0.14, 0.3), C.greenD, 0, 2.02, 0.0);
+    const q = add(body, boxG(0.16, 0.62, 0.18), C.brown, 0.14, 1.34, -0.3); q.rotation.z = 0.25; for (const k of [-1, 0, 1]) add(body, boxG(0.03, 0.2, 0.03), MAT.bright, 0.24 + k * 0.02, 1.72, -0.3);
+  } else if (cls === 'crossbowman') { // sallet helm, maroon jerkin, bolt bandolier
+    hide(bp[2]); hide(bp[6]); hide(bp[8]); M.noShield = true;
+    add(body, boxG(0.62, 0.7, 0.38), C.maroon, 0, 1.26, 0); add(body, boxG(0.42, 0.32, 0.44), MAT.steelDark, 0, 1.82, 0); add(body, boxG(0.46, 0.05, 0.56), MAT.steelDark, 0, 1.7, 0.05); add(body, boxG(0.12, 0.2, 0.3), MAT.steelDark, 0, 1.64, -0.3);
+    const bd = add(body, boxG(0.09, 0.95, 0.05), MAT.leather, 0, 1.28, 0.2); bd.rotation.z = 0.75; for (const k of [-1, 0, 1]) { const b = add(body, boxG(0.03, 0.2, 0.03), MAT.bright, k * 0.17, 1.28 + k * 0.16, 0.24); b.rotation.z = 0.75; }
+    add(body, boxG(0.16, 0.4, 0.16), C.brown, -0.3, 0.98, -0.14);
+  } else if (cls === 'scout') { // lean: black leathers, hood and mask, scarf in team colour
+    M.root.scale.set(0.93, 0.98, 0.93); hide(bp[2]); hide(bp[3]); hide(bp[6]); hide(bp[7]); hide(bp[8]); hide(bp[9]); hide(bp[10]); M.noShield = true;
+    add(body, boxG(0.5, 0.68, 0.3), C.black, 0, 1.25, 0); add(body, boxG(0.38, 0.34, 0.42), C.black, 0, 1.8, -0.02); add(body, boxG(0.3, 0.12, 0.33), C.black, 0, 1.7, 0.01); add(body, boxG(0.4, 0.1, 0.4), tm, 0, 1.56, 0);
+    const sh = add(body, boxG(0.06, 0.32, 0.06), MAT.leather, -0.3, 0.94, 0.12); sh.rotation.z = 0.4; add(body, boxG(0.5, 0.08, 0.34), MAT.leather, 0, 0.93, 0);
+    const k2 = makeWeapon('knife'); k2.position.set(0, -0.64, 0); k2.rotation.x = Math.PI / 2; M.armL.add(k2); M.knife2 = k2;
+  } else if (cls === 'spearman') { // padded gambeson, kettle helm, round shield
+    hide(bp[2]); hide(bp[6]); hide(bp[8]);
+    add(body, boxG(0.6, 0.72, 0.4), C.tan, 0, 1.26, 0); add(body, boxG(0.62, 0.05, 0.42), C.brown, 0, 1.04, 0);
+    add(body, boxG(0.36, 0.2, 0.36), MAT.steel, 0, 1.95, 0); add(body, boxG(0.56, 0.04, 0.56), MAT.steelDark, 0, 1.86, 0); add(body, boxG(0.26, 0.08, 0.06), MAT.dark, 0, 1.74, 0.2);
+    M.shield.scale.set(0.8, 0.72, 0.8);
+  }
+}
+function makeSoldierMesh(team, wid, withBlob, cls) {
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   const tm = TEAMMAT[team], bp = [];
   const add = (par, geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); par.add(m); return m; };
@@ -3836,6 +4297,7 @@ function makeSoldierMesh(team, wid, withBlob) {
   armL.add(shield); body.add(armL);
   const M = { root, body, legL, legR, armR, armL, shield, weapon: null, wid, bp, phase: Math.random() * 6, bl: 0, dr: 0, blob: null };
   setMeshWeapon(M, wid);
+  if (cls) dressClass(M, cls, tm, add, bp);
   if (withBlob) { const b = new THREE.Mesh(blobG, blobM); b.rotation.x = -Math.PI / 2; b.position.y = 0.12; root.add(b); M.blob = b; }
   return M;
 }
@@ -3869,11 +4331,13 @@ function poseSoldier(M, s, dt) {
       else th = lerp(-0.15, rest, ease(clamp((t - str) / (w.dur - str), 0, 1)));
     }
   }
-  const ranged = wid === 'bow';
+  const xb = wid === 'crossbow', ranged = wid === 'bow' || xb;
   let dfrac = -1;
-  if (ranged && s.alive && s.drawT >= 0) dfrac = clamp(s.drawT / (w.draw || 0.85), 0, 1);
-  M.dr += ((dfrac >= 0 ? 1 : 0) - M.dr) * Math.min(1, dt * 12);
+  if (wid === 'bow' && s.alive && s.drawT >= 0) dfrac = clamp(s.drawT / (w.draw || 0.85), 0, 1);
+  const xAim = xb && s.alive && s.loaded && !!(s.input && (s.input.aim || s.input.attack));
+  M.dr += (((xb ? xAim : dfrac >= 0) ? 1 : 0) - M.dr) * Math.min(1, dt * 12);
   if (ranged) th = lerp(rest - sw * 0.12, -1.5, M.dr);
+  if (xb && s.alive && !s.loaded) th = -0.4 + Math.sin(performance.now() / 85) * 0.1; // cranking the string back
   M.armR.rotation.x = th;
   M.weapon.position.set(0, -0.64 + Math.cos(wrot) * off, Math.sin(wrot) * off);
   // left arm and shield
@@ -3882,12 +4346,13 @@ function poseSoldier(M, s, dt) {
   M.armL.rotation.y = -0.65 * bl;
   M.shield.rotation.y = (-Math.PI / 2 + 0.65) * bl;
   M.shield.position.x = lerp(0.13, 0.02, bl);
-  M.shield.visible = !ranged;
+  M.shield.visible = !ranged && !M.noShield;
   if (ranged) {
     M.armL.rotation.x = lerp(-0.25 + sw * 0.12, -1.45, M.dr);
     M.armL.rotation.y = lerp(0, -1.0, M.dr);
     const u = M.weapon.userData;
-    if (u && u.string) { const pull = dfrac >= 0 ? dfrac : 0; u.string.position.y = 0.2 + 0.3 * pull; u.nock.visible = dfrac >= 0; u.nock.position.y = u.string.position.y; }
+    if (xb && u && u.string) { u.string.position.y = s.loaded ? 0.12 : lerp(0.64, 0.12, 1 - clamp(s.reloadT / (w.reload || 4), 0, 1)); u.nock.visible = !!s.loaded; }
+    else if (u && u.string) { const pull = dfrac >= 0 ? dfrac : 0; u.string.position.y = 0.2 + 0.3 * pull; u.nock.visible = dfrac >= 0; u.nock.position.y = u.string.position.y; }
   }
   // body lean / stagger / death
   let bx = lean;
@@ -4011,7 +4476,11 @@ const markG = new THREE.ConeGeometry(0.17, 0.36, 4);
 function createViews() {
   clearViews();
   for (const s of match.soldiers) {
-    const M = makeSoldierMesh(s.look, s.weapon.id, true);
+    const M = makeSoldierMesh(s.look, s.weapon.id, true, s.cls);
+    if (s.isTarget || s.isChampion) { // a gold crown and a tall beam mark the hunted target and each side's champion
+      const cr = new THREE.Mesh(boxG(0.44, 0.22, 0.44), MAT.gold); cr.position.y = 2.4; M.body.add(cr);
+      const bm = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 70, 8, 1, true), new THREE.MeshBasicMaterial({ color: s.isTarget ? 0xffc94a : s.team === T_BLUE ? 0x4b88f2 : 0xe3493b, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide })); bm.position.y = 35; M.root.add(bm);
+    }
     if (s.isKing) { M.root.scale.setScalar(1.18); const cr = new THREE.Mesh(boxG(0.4, 0.2, 0.4), MAT.gold); cr.position.y = 2.2; M.body.add(cr); }
     scene.add(M.root);
     const bar = new THREE.Group(); const bg = new THREE.Mesh(barG, barBgM), fg = new THREE.Mesh(barG, barFgM);
@@ -4020,6 +4489,14 @@ function createViews() {
     views.set(s.id, { M, bar, fg, mk, s });
   }
   const addProp = (g, upd, x) => { scene.add(g); propViews.push({ g, upd, x }); };
+  if (match.banner) { // King's Standard: the royal banner, a beam so it can be seen across the field
+    const b = match.banner, g = new THREE.Group(), fm = new THREE.MeshLambertMaterial({ color: 0xd4a84b, side: THREE.DoubleSide });
+    const pole = new THREE.Mesh(boxG(0.14, 5.4, 0.14), MAT.wood); pole.position.y = 2.7; g.add(pole);
+    const fl = new THREE.Mesh(boxG(0.05, 1.8, 2.4), fm); fl.position.set(0, 4.3, 1.25); g.add(fl);
+    const em = new THREE.Mesh(boxG(0.07, 0.7, 0.9), MAT.gold); em.position.set(0, 4.3, 1.25); g.add(em);
+    const bm = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 90, 10, 1, true), new THREE.MeshBasicMaterial({ color: 0xffd36a, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide })); bm.position.y = 45; g.add(bm);
+    addProp(g, () => { g.position.set(b.x, b.y, b.z); fm.color.setHex(b.team === T_BLUE ? 0x4b88f2 : b.team === T_RED ? 0xe3493b : 0xd4a84b); });
+  }
   for (const h of match.horses || []) {
     const g = makeHorse(match.horses.indexOf(h)), hs = { lx: h.x, lz: h.z, ph: 0, amp: 0 }, bar = new THREE.Group(), bg = new THREE.Mesh(barG, barBgM), fg = new THREE.Mesh(barG, barFgM);
     bg.scale.set(1.3, 1.4, 1); fg.position.z = 0.002; bar.add(bg, fg); scene.add(bar);
@@ -4035,7 +4512,7 @@ function createViews() {
   for (const b of match.ballistas || []) { const g = b.cat ? makeCatapult() : makeBallista(); addProp(g, () => { g.position.set(b.x, b.y, b.z); g.rotation.y = b.yaw; if (b.cat) animCatapult(g, b); else animBallista(g, b); }); }
   if (match.ram) { const r = match.ram, g = makeRam(); addProp(g, () => { g.position.set(r.x, 0, r.z); g.userData.swing.rotation.x = r.t > 0 ? Math.sin(Math.min(1, r.t / 1.8) * Math.PI) * 0.4 : 0; }); }
   // first-person arms
-  fpModel = makeSoldierMesh(match.player.look, match.player.weapon.id, false);
+  fpModel = makeSoldierMesh(match.player.look, match.player.weapon.id, false, match.player.cls);
   for (const o of fpModel.bp) o.visible = false;
   fpModel.root.rotation.y = Math.PI; fpModel.root.position.set(0, -1.7, 0.12);
   fpModel.root.traverse(o => { o.frustumCulled = false; });
@@ -4094,7 +4571,7 @@ function updateViews(dt) {
     fpModel.root.visible = viewMode === 'first' && p.alive && !p.mount;
     if (fpModel.wid !== p.weapon.id) setMeshWeapon(fpModel, p.weapon.id);
     // dampen locomotion bob in first person
-    const fake = { weapon: p.weapon, alive: p.alive, speed: p.speed * 0.5, atkT: p.atkT, blocking: p.blocking, stagger: 0, deadT: 0, drawT: p.drawT };
+    const fake = { weapon: p.weapon, alive: p.alive, speed: p.speed * 0.5, atkT: p.atkT, blocking: p.blocking, stagger: 0, deadT: 0, drawT: p.drawT, loaded: p.loaded, reloadT: p.reloadT, input: p.input };
     poseSoldier(fpModel, fake, dt);
     fpModel.body.rotation.x = 0;
   }
@@ -4127,14 +4604,15 @@ function updateArrows() {
 }
 
 /* ---------- map building for a match ---------- */
-function startMatch(cfg) {
+function startMatch(cfg, netInit) {
   Aud.init();
   if (xActive) { leaveExploreView(); fromWorld = { loc: xs && xs.loc }; battleLock = null; document.body.classList.remove('playing'); }
   cfgLast = cfg;
   clearViews();
   buildWorld(cfg.map, cfg.mode === 'ffa'); if (world.gate) world.gate.visible = true;
   match = new Sim.Match(cfg);
-  match.on(onEvent); applyCheats(match.player);
+  if (netInit) netMirror(netInit);
+  match.on(onEvent); if (!netInit) applyCheats(match.player);
   createViews();
   viewMode = CAMS[settings.view] ? settings.view : 'third'; camZoom = 1;
   look.yaw = match.player.yaw; look.pitch = 0;
@@ -4144,13 +4622,13 @@ function startMatch(cfg) {
   hideScreens();
   $('killfeed').innerHTML = '';
   buildChips();
-  const t = cfg.mode === 'siege' ? (cfg.team === T_BLUE ? 'Storm the fortress and slay the king' : 'Defend the king until time runs out') : cfg.mode === 'conquest' ? 'Capture the flags' : cfg.mode === 'ffa' ? 'Free for all: most kills wins' : 'Defeat the enemy army';
+  const t = MODE_TOAST[cfg.mode] ? MODE_TOAST[cfg.mode] : cfg.mode === 'manhunt' ? (cfg.team === T_BLUE ? 'You are the hunted target: survive until the clock ends' : 'Hunt down the Blue target') : cfg.mode === 'laststand' ? (cfg.team === T_BLUE ? 'Take the position and hold it' : 'Hold the position until time runs out') : cfg.mode === 'champion' ? 'Protect your champion, slay theirs' : cfg.mode === 'siege' ? (cfg.team === T_BLUE ? 'Storm the fortress and slay the king' : 'Defend the king until time runs out') : cfg.mode === 'conquest' ? 'Capture the flags' : cfg.mode === 'ffa' ? 'Free for all: most kills wins' : 'Defeat the enemy army';
   toast(t);
   Aud.play('horn', 1);
   requestLock();
 }
 function teardownMatch() {
-  clearViews(); match = null; state = 'menu'; paused = false;
+  clearViews(); match = null; state = 'menu'; paused = false; Net.active = false; Net.snap = null; Net.ev.length = 0;
   document.body.classList.remove('playing'); $('hud').hidden = true;
 }
 function requestLock() {
@@ -4185,6 +4663,10 @@ function onEvent(type, d) {
       Aud.at('clang', q.x, q.z, 1);
       if (d.e === p || d.a === p) { flashCross('blk'); if (d.e === p) shake = Math.max(shake, 0.4); }
       break; }
+    case 'parry': { const q = d.pos; emit(q.x, q.y, q.z, 16, 1, 1, 0.8, 5); Aud.at('clang', q.x, q.z, 1.2); if (d.e === p || d.a === p) { flashCross('blk'); toast(d.e === p ? 'Parry!' : 'You were parried'); if (d.e === p) shake = Math.max(shake, 0.3); } break; }
+    case 'reloaded': if (d === p) Aud.play('click', 0.9); break;
+    case 'bannerup': toast(d === p ? 'You have the royal banner! Hold it!' : (d.team === (p && p.team) ? 'Your side has the banner' : 'The enemy has the banner')); Aud.play('horn', 0.5); break;
+    case 'bannerdrop': toast('The royal banner has been dropped'); break;
     case 'guardbreak': Aud.at('break', d.pos.x, d.pos.z, 1); if (d.e === p) toast('Guard broken'); break;
     case 'kill': {
       Aud.at('death', d.v.x, d.v.z, 1);
@@ -4247,7 +4729,7 @@ function finishMatchUI(winner) {
   const t = $('eTitle'); t.textContent = draw ? 'Stalemate' : win ? 'Victory' : 'Defeat'; t.className = 'result ' + (draw ? 'draw' : win ? 'win' : 'lose');
   $('eB').textContent = m.scores[T_BLUE]; $('eR').textContent = m.scores[T_RED];
   const nm = winner === T_BLUE ? 'The Blue Army' : 'The Red Army';
-  $('eSub').textContent = m.mode === 'siege' ? (winner === T_BLUE ? 'The king is dead and the fortress has fallen.' : 'The king lived until the siege was broken.') : draw ? 'Both armies finished level when time ran out.' : `${nm} ${m.time <= 0 ? 'led when time ran out.' : (m.mode === 'conquest' ? 'won the battle for the flags.' : 'won the battle.')}`;
+  $('eSub').textContent = MODE_END[m.mode] ? MODE_END[m.mode](m, winner, nm) : m.mode === 'siege' ? (winner === T_BLUE ? 'The king is dead and the fortress has fallen.' : 'The king lived until the siege was broken.') : draw ? 'Both armies finished level when time ran out.' : `${nm} ${m.time <= 0 ? 'led when time ran out.' : (m.mode === 'conquest' ? 'won the battle for the flags.' : 'won the battle.')}`;
   }
   const el = Math.round(m.elapsed), mm = Math.floor(el / 60), ss = String(el % 60).padStart(2, '0');
   const kd = p.deaths ? (p.kills / p.deaths).toFixed(2) : p.kills.toFixed(1);
@@ -4261,7 +4743,7 @@ function finishMatchUI(winner) {
 let chips = [];
 function buildChips() {
   const box = $('pts'); box.innerHTML = ''; chips = [];
-  if (match.mode !== 'conquest') { box.hidden = true; $('ptname').textContent = ''; return; }
+  if (match.mode !== 'conquest' && match.mode !== 'laststand') { box.hidden = true; $('ptname').textContent = ''; return; }
   box.hidden = false;
   for (const p of match.points) { const c = document.createElement('div'); c.className = 'chip'; c.innerHTML = `<span>${p.id}</span>`; box.appendChild(c); chips.push(c); }
 }
@@ -4271,15 +4753,15 @@ function updateHud(dt) {
   const p = player(), m = match; if (!p) return;
   // vitals every frame
   const hpR = clamp(p.hp / p.maxHp, 0, 1);
-  $('hpU').style.width = (hpR * 100) + '%'; $('hpT').textContent = Math.ceil(Math.max(0, p.hp));
+  $('hpU').style.width = (hpR * 100) + '%'; $('hpT').textContent = Math.ceil(Math.max(0, p.hp)) + (p.regening ? ' +' : '');
   $('stU').style.width = clamp(p.stamina, 0, 100) + '%';
-  $('wName').textContent = p.weapon.name;
+  $('wName').textContent = (p.cdef && !p.mount ? p.cdef.name + ' · ' : '') + p.weapon.name;
   const lad = p.alive ? Sim.ladderAt(match.def, p.x, p.z) : null;
   $('prompt').textContent = lad ? (p.y > 0.05 ? 'Face the ladder: W climb · S down · Space jump off' : 'Face the ladder and hold W to climb') : ((p.alive && match.near && (match.near(p) || {}).label) || '');
   const isBow = !!p.weapon.ranged;
   if (isBow !== crossBow) { crossBow = isBow; $('cross').className = isBow ? 'bow' : ''; }
   const dm = $('drawm'); dm.style.display = isBow && p.alive ? 'block' : 'none';
-  if (isBow) { const f = p.drawT >= 0 ? clamp(p.drawT / p.weapon.draw, 0, 1) : 0; dm.firstElementChild.style.width = (f * 100) + '%'; dm.classList.toggle('full', f >= 1); }
+  if (isBow) { const f = p.weapon.xbow ? (p.loaded ? 1 : 1 - clamp(p.reloadT / p.weapon.reload, 0, 1)) : p.drawT >= 0 ? clamp(p.drawT / p.weapon.draw, 0, 1) : 0; dm.firstElementChild.style.width = (f * 100) + '%'; dm.classList.toggle('full', f >= 1); }
   const vg = $('vig'); hitFlash = Math.max(0, hitFlash - dt * 2.2); vg.style.opacity = (hitFlash * 0.9 + (hpR < 0.3 ? (0.3 - hpR) * 1.2 : 0)).toFixed(2);
   $('death').hidden = p.alive;
   if (!p.alive) $('deathTx').textContent = m.ended ? '' : 'Respawning in ' + Math.max(1, Math.ceil(p.respawnT));
@@ -4310,7 +4792,22 @@ function updateHud(dt) {
     $('armyTx').textContent = p.team === T_BLUE ? 'You attack the fortress' : 'You defend the king';
   }
   { const fl = m.soldiers.reduce((a, q) => a + (q.alive && q.ai.follow === p ? 1 : 0), 0); $('orders').innerHTML = `<b>Q</b> call &middot; <b>F</b> send &middot; following ${fl}${p.canFly && !p.admin ? ' &middot; <b>G</b> fly' : ''}${cheats.admin ? ' &middot; <b>K</b> admin ' + (p.admin ? 'ON' : 'off') : ''}`; }
-  if (m.mode === 'conquest') {
+  { // mode readout under the score bar
+    let mi = $('modeInfo'); if (!mi) { mi = document.createElement('div'); mi.id = 'modeInfo'; document.body.appendChild(mi); }
+    let tx = '';
+    if (m.mode === 'manhunt' && m.hunted) { const t = m.hunted, pc = Math.ceil(Math.max(0, t.hp) / t.maxHp * 100); tx = !t.alive ? 'The target is down' : p === t ? `You are the target - health ${pc}% - survive!` : `${p.team === t.team ? 'Protect' : 'Hunt'} the target - health ${pc}% - ${Math.round(Math.hypot(t.x - p.x, t.z - p.z))} m away`; }
+    else if (m.mode === 'champion' && m.champs) { const f = (t) => { const c = m.champs[t]; return c.alive ? Math.ceil(c.hp / c.maxHp * 100) + '%' : 'FALLEN'; }; tx = `Blue champion ${f(T_BLUE)} - Red champion ${f(T_RED)}`; }
+    else if (m.mode === 'kingstandard' && m.banner) { const b = m.banner; tx = b.carrier ? `${b.carrier === p ? 'You hold' : (b.team === T_BLUE ? 'Blue' : 'Red') + ' holds'} the royal banner` : `The royal banner is free - ${Math.round(Math.hypot(b.x - p.x, b.z - p.z))} m away`; }
+    else if (m.mode === 'laststand' && m.stand) { const st = m.stand, pc = Math.round(clamp((st.v + 100) / 2, 0, 100)); tx = `${p.team === T_RED ? 'Defend' : 'Take'} ${st.name} - ${pc}% taken${st.bCount && st.rCount ? ' - contested' : ''}`; }
+    else if (m.mode === 'ironsquad') tx = 'Iron Squad - double health for all';
+    else if (m.mode === 'archers') tx = "Archer's Gambit - ranged only";
+    mi.textContent = tx; mi.hidden = !tx;
+    if (m.mode === 'laststand' && m.stand) { const pc = clamp((m.stand.v + 100) / 2, 0, 100); $('sB').textContent = Math.round(pc) + '%'; $('sR').textContent = Math.round(100 - pc) + '%'; $('bB').style.width = pc + '%'; $('bR').style.width = (100 - pc) + '%'; document.querySelector('#topbar .tm.blue small').textContent = 'Attackers · Taken'; document.querySelector('#topbar .tm.red small').textContent = 'Defenders · Held'; }
+    if (m.mode === 'champion' && m.champs) { const f = (t) => { const c = m.champs[t]; return c.alive ? clamp(c.hp / c.maxHp, 0, 1) : 0; }; $('sB').textContent = Math.round(f(T_BLUE) * 100) + '%'; $('sR').textContent = Math.round(f(T_RED) * 100) + '%'; $('bB').style.width = f(T_BLUE) * 100 + '%'; $('bR').style.width = f(T_RED) * 100 + '%'; document.querySelector('#topbar .tm.blue small').textContent = 'Blue Champion'; document.querySelector('#topbar .tm.red small').textContent = 'Red Champion'; }
+    if (m.mode === 'manhunt' && m.hunted) { const t = m.hunted, f = t.alive ? clamp(t.hp / t.maxHp, 0, 1) : 0; $('sB').textContent = Math.round(f * 100) + '%'; $('bB').style.width = f * 100 + '%'; $('bR').style.width = '0%'; document.querySelector('#topbar .tm.blue small').textContent = 'Target health'; document.querySelector('#topbar .tm.red small').textContent = 'Hunters · ' + m.soldiers.filter(q => q.team === T_RED && q.alive).length; }
+    if (m.mode === 'kingstandard') document.querySelector('#topbar .tm.blue small').textContent = `Blue Army · ${m.target} to win`;
+  }
+  if (m.mode === 'conquest' || m.mode === 'laststand') {
     let near = '';
     m.points.forEach((pt, i) => {
       const c = chips[i], a = Math.abs(pt.v) / 100;
@@ -4327,7 +4824,8 @@ function drawMinimap() {
   const m = match, p = player(), def = m.def, S = 340, k = S / (def.half * 2), g = mmCtx;
   g.drawImage(world.mapCanvas, 0, 0, S, S);
   const X = (x) => (x + def.half) * k, Z = (z) => (z + def.half) * k;
-  if (m.mode === 'conquest') for (const pt of m.points) {
+  if (m.banner) { g.fillStyle = m.banner.team === T_BLUE ? '#4b88f2' : m.banner.team === T_RED ? '#e3493b' : '#ffd36a'; g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.rect(X(m.banner.x) - 8, Z(m.banner.z) - 8, 16, 16); g.fill(); g.stroke(); }
+  if (m.mode === 'conquest' || m.mode === 'laststand') for (const pt of m.points) {
     g.beginPath(); g.arc(X(pt.x), Z(pt.z), pt.r * k, 0, 7);
     g.fillStyle = pt.v > 0 ? 'rgba(75,136,242,.35)' : pt.v < 0 ? 'rgba(227,73,59,.35)' : 'rgba(200,200,200,.18)'; g.fill();
     g.lineWidth = 3; g.strokeStyle = pt.owner === T_BLUE ? '#4b88f2' : pt.owner === T_RED ? '#e3493b' : '#b9b2a0'; g.stroke();
@@ -4335,7 +4833,7 @@ function drawMinimap() {
   }
   for (const s of m.soldiers) {
     if (!s.alive || s === p) continue;
-    g.fillStyle = m.ffa ? CSS[s.look] : s.team === T_BLUE ? '#6aa0ff' : '#ff6a5a'; g.beginPath(); g.arc(X(s.x), Z(s.z), 5, 0, 7); g.fill();
+    g.fillStyle = m.ffa ? CSS[s.look] : s.team === T_BLUE ? '#6aa0ff' : '#ff6a5a'; g.beginPath(); g.arc(X(s.x), Z(s.z), s.isTarget || s.isChampion ? 8 : 5, 0, 7); g.fill(); if (s.isTarget || s.isChampion) { g.lineWidth = 3; g.strokeStyle = '#ffd36a'; g.stroke(); }
     g.strokeStyle = 'rgba(0,0,0,.6)'; g.lineWidth = 1.5; g.stroke();
   }
   if (m.king && m.king.alive) { g.fillStyle = '#ffd34a'; g.beginPath(); g.arc(X(m.king.x), Z(m.king.z), 8, 0, 7); g.fill(); g.strokeStyle = '#000'; g.lineWidth = 2; g.stroke(); }
@@ -4452,12 +4950,12 @@ window.addEventListener('keydown', (e) => {
   if (e.repeat) return;
   const p = player();
   if (e.code === 'KeyC' || e.code === 'KeyV') setView(CAM_ORDER[(CAM_ORDER.indexOf(viewMode) + 1) % CAM_ORDER.length]);
-  if (e.code === 'KeyE' && p.alive) { const r = match.interact(p); if (r) toast(r); Aud.play('click', 0.6); }
-  if (e.code === 'KeyQ' && p.alive) { const n = match.call(p); toast(n ? `${n} soldiers follow you (they only fight if hit in melee, or when you SEND them)` : 'No free soldiers nearby'); Aud.play('horn', 0.4); }
-  if (e.code === 'KeyF' && p.alive) { const v = new THREE.Vector3(); camera.getWorldDirection(v); const o = camera.position; let t = v.y < -0.02 ? -o.y / v.y : 50; t = Math.min(t, 110); const hh = match.def.half - 3, x = clamp(o.x + v.x * t, -hh, hh), z = clamp(o.z + v.z * t, -hh, hh); const n = match.send(p, x, z); toast(n ? `${n} soldiers sent` : 'Press Q to call soldiers first'); if (n) setOrderMark(x, z); }
-  if (e.code === 'KeyK' && cheats.admin && p.alive) setAdmin(p, !p.admin, true);
-  if (e.code === 'KeyG' && p.canFly && p.alive && !p.admin) { p.fly = !p.fly; toast(p.fly ? 'Flying: Space up, X down' : 'Flight off'); }
-  const wk = { Digit1: 'sword', Digit2: 'axe', Digit3: 'spear', Digit4: 'bow' }[e.code];
+  if (e.code === 'KeyE' && p.alive) { const r = Net.active ? null : match.interact(p); if (r) toast(r); Aud.play('click', 0.6); }
+  if (e.code === 'KeyQ' && p.alive) { const n = Net.active ? (netOrder({ type: 'call' }), 1) : match.call(p); toast(n ? `${n} soldiers follow you (they only fight if hit in melee, or when you SEND them)` : 'No free soldiers nearby'); Aud.play('horn', 0.4); }
+  if (e.code === 'KeyF' && p.alive) { const v = new THREE.Vector3(); camera.getWorldDirection(v); const o = camera.position; let t = v.y < -0.02 ? -o.y / v.y : 50; t = Math.min(t, 110); const hh = match.def.half - 3, x = clamp(o.x + v.x * t, -hh, hh), z = clamp(o.z + v.z * t, -hh, hh); const n = Net.active ? (netOrder({ type: 'send', x, z }), 1) : match.send(p, x, z); toast(n ? `${n} soldiers sent` : 'Press Q to call soldiers first'); if (n) setOrderMark(x, z); }
+  if (e.code === 'KeyK' && cheats.admin && p.alive && !Net.active) setAdmin(p, !p.admin, true);
+  if (e.code === 'KeyG' && !Net.active && p.canFly && p.alive && !p.admin) { p.fly = !p.fly; toast(p.fly ? 'Flying: Space up, X down' : 'Flight off'); }
+  const wk = (p.cdef && p.cdef.alt || [])[{ Digit1: 0, Digit2: 1 }[e.code]]; // your class decides which weapons you can swap between (Knight: sword or axe)
   if (wk && p.alive && !p.mount && p.atkT < 0 && p.weapon.id !== wk) { p.weapon = WEAPONS[wk]; p.drawT = -1; p.cdT = Math.max(p.cdT, 0.25); Aud.play('click', 0.6); }
   if (e.code === 'Space' && p.alive && p.y < 0.05) Aud.play('jump', 0.6);
 });
@@ -4501,14 +4999,17 @@ function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'scr-' + id));
   curScreen = id;
   if (id === 'settings') syncSettingsUI();
+  if (id === 'online') { syncOnlineUI(); if (Net.connected) netRefresh(); }
+  if (id === 'lobby') renderLobby();
   if (id === 'custom') syncCustomUI();
-  if (id === 'pause' || id === 'end') { $('pWorld').hidden = !fromWorld; $('eWorld').hidden = !fromWorld; $('pMap').hidden = state !== 'explore'; $('pRestart').hidden = state === 'explore'; $('pQuit').textContent = 'Quit to Main Menu'; }
+  if (id === 'pause' || id === 'end') { $('pWorld').hidden = !fromWorld; $('eWorld').hidden = !fromWorld; $('pMap').hidden = state !== 'explore'; $('pRestart').hidden = state === 'explore' || !!Net.active; $('pQuit').textContent = 'Quit to Main Menu'; }
 }
 function pause() {
   if (state !== 'playing' || paused) return;
   paused = true; mouseL = mouseR = false; for (const k in keys) keys[k] = false;
   document.body.classList.remove('playing');
   $('pauseNote').textContent = noLock ? 'Mouse capture is blocked by this page, so the cursor can leave the game. Push it against a screen edge to keep turning. Arrow keys also turn. Opening the file directly in Chrome fixes this.' : 'The battle is on hold.';
+  $('pRestart').hidden = !!Net.active; $('pResume').textContent = Net.active ? 'Resume (the match keeps running)' : 'Resume';
   curScreen = null; show('pause'); exitLock();
 }
 function resume() {
@@ -4544,24 +5045,255 @@ window.addEventListener('resize', () => { if (xs && xs.mapOpen && state === 'exp
 $('eAgain').onclick = () => { if (cfgLast) startMatch(Object.assign({}, cfgLast, { difficulty: settings.diff })); };
 $('eMenu').onclick = () => { fromWorld = null; xs = null; teardownMatch(); show('main'); };
 
+/* ---------- online multiplayer (client) ----------
+   The server runs the real simulation. This side only sends controls and mirrors what the server reports:
+   a local Sim.Match object is kept purely as a "mirror" (map, nav, points, soldier objects) that snapshots are written into. */
+const Net = { sock: null, url: '', connected: false, room: null, you: null, active: false, snap: null, ev: [], sendT: 0, priv: false, busy: false, lastEnd: null };
+const NET_MAPS = [['castle', 'Castle Grounds'], ['village', 'Medieval Village'], ['palace', 'Central Palace'], ['fortress', 'Fortress']];
+const NET_MODES = [['tdm', 'Team Deathmatch'], ['ffa', 'Free for All'], ['ironsquad', 'Iron Squad'], ['conquest', 'Conquest']];
+const NET_CLASSES = [['knight', 'Knight'], ['archer', 'Archer'], ['crossbowman', 'Crossbowman'], ['scout', 'Scout'], ['spearman', 'Spearman']];
+const esc = (t) => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function netDefaultUrl() {
+  try { const q = new URLSearchParams(location.search).get('server'); if (q) return q; } catch (e) {}
+  try { const s = localStorage.getItem('bb_server'); if (s) return s; } catch (e) {}
+  if (window.BB_SERVER) return window.BB_SERVER;
+  if (/^https?:$/.test(location.protocol) && /^(localhost|127\.|192\.168\.|10\.)/.test(location.hostname)) return location.origin;
+  return 'http://localhost:3000';
+}
+function netStatus(t, bad) { const e = $('nStatus'); if (e) { e.textContent = t || ''; e.style.color = bad ? '#e8806f' : ''; } }
+function netLoadLib(url) {
+  return new Promise((res, rej) => {
+    if (window.io) return res();
+    const urls = [url.replace(/\/$/, '') + '/socket.io/socket.io.js', 'https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js', 'https://cdn.socket.io/4.7.5/socket.io.min.js'];
+    let i = 0;
+    const next = () => {
+      if (i >= urls.length) return rej(new Error('Could not load the Socket.IO client library'));
+      const sc = document.createElement('script'); sc.src = urls[i++];
+      sc.onload = () => (window.io ? res() : next()); sc.onerror = () => { sc.remove(); next(); };
+      document.head.appendChild(sc);
+    };
+    next();
+  });
+}
+function netCall(ev, data) {
+  return new Promise((res) => {
+    if (!Net.sock || !Net.connected) return res({ ok: false, err: 'Not connected' });
+    let done = false; const t = setTimeout(() => { if (!done) { done = true; res({ ok: false, err: 'Server did not answer' }); } }, 6000);
+    Net.sock.emit(ev, data || {}, (r) => { if (done) return; done = true; clearTimeout(t); res(r || { ok: false }); });
+  });
+}
+function netEmit(ev, data) { if (Net.sock && Net.connected) Net.sock.emit(ev, data); }
+function netOrder(o) { netEmit('order', o); }
+function netName() { let n = ($('nName').value || '').replace(/[^\w \-.]/g, '').trim().slice(0, 16) || 'Player'; try { localStorage.setItem('bb_name', n); } catch (e) {} return n; }
+async function netConnect() {
+  if (Net.busy) return; Net.busy = true;
+  const url = $('nUrl').value.trim().replace(/\/$/, '');
+  try { localStorage.setItem('bb_server', url); } catch (e) {}
+  netStatus('Connecting to ' + url + ' ...');
+  try {
+    await netLoadLib(url);
+    if (Net.sock) { try { Net.sock.close(); } catch (e) {} }
+    const sock = Net.sock = io(url, { transports: ['websocket', 'polling'], reconnection: false, timeout: 8000 });
+    await new Promise((res, rej) => { sock.once('connect', res); sock.once('connect_error', (e) => rej(new Error('Could not reach the server (' + (e && e.message || 'connect error') + ')'))); });
+    Net.connected = true; Net.url = url; Net.you = sock.id;
+    sock.on('room', netOnRoom); sock.on('start', netOnStart); sock.on('snap', (s) => { Net.snap = s; });
+    sock.on('ev', (l) => { for (const e of l) Net.ev.push(e); if (Net.ev.length > 400) Net.ev.splice(0, Net.ev.length - 400); });
+    sock.on('end', netOnEnd);
+    sock.on('closed', (m) => { netLeaveLocal(); toast(m && m.msg || 'Room closed'); show('online'); });
+    sock.on('error', (m) => { if (m && m.msg) toast(m.msg); });
+    sock.on('disconnect', () => {
+      Net.connected = false; const was = Net.active || Net.room; netLeaveLocal(); if (state === 'playing' || state === 'ended') { teardownMatch(); }
+      if (was) { show('online'); } syncOnlineUI(); netStatus('Disconnected from the server.', true);
+    });
+    netStatus('Connected.'); syncOnlineUI(); netRefresh();
+  } catch (e) { netStatus(e.message || String(e), true); Net.connected = false; syncOnlineUI(); }
+  Net.busy = false;
+}
+function netLeaveLocal() { Net.room = null; Net.active = false; Net.snap = null; Net.ev.length = 0; }
+async function netLeave() { if (Net.connected) await netCall('leave'); netLeaveLocal(); }
+function syncOnlineUI() {
+  $('nPanel').hidden = !Net.connected; $('nConnect').textContent = Net.connected ? 'Reconnect' : 'Connect';
+  document.querySelectorAll('#nPriv button').forEach(b => b.setAttribute('aria-pressed', String((b.dataset.val === '1') === Net.priv)));
+}
+async function netRefresh() {
+  const box = $('nRooms'); if (!Net.connected) { box.innerHTML = ''; return; }
+  const r = await netCall('list');
+  if (!r.ok) { box.innerHTML = '<p class="note">Could not load the list.</p>'; return; }
+  const mn = Object.fromEntries(NET_MODES), mp = Object.fromEntries(NET_MAPS);
+  box.innerHTML = r.rooms.length ? r.rooms.map(x => `<div class="prow"><span class="pn">${esc(x.code)} · ${esc(x.host)}'s room</span><span class="pc">${esc(mp[x.map] || x.map)} · ${esc(mn[x.mode] || x.mode)} · ${x.players}/${x.max}</span>${x.state === 'lobby' ? `<button class="mini" data-join="${esc(x.code)}">Join</button>` : '<span class="pc">in progress</span>'}</div>`).join('') : '<p class="note">No public rooms right now. Create one!</p>';
+}
+async function netEnter(r) { if (!r.ok) { netStatus(r.err || 'Failed', true); return; } show('lobby'); renderLobby(); }
+function netOnRoom(st) {
+  Net.room = st;
+  if (curScreen === 'lobby' || (curScreen === 'online' && st.players.some(p => p.id === Net.you))) { if (st.state === 'lobby') { if (curScreen !== 'lobby') show('lobby'); renderLobby(); } }
+}
+function renderLobby() {
+  const r = Net.room; if (!r) return;
+  const host = r.host === Net.you, ffa = r.cfg.mode === 'ffa', me = r.players.find(p => p.id === Net.you) || {};
+  const mn = Object.fromEntries(NET_MODES), mp = Object.fromEntries(NET_MAPS), cn = Object.fromEntries(NET_CLASSES);
+  $('lCode').textContent = r.code; $('lPriv').textContent = r.isPrivate ? 'Private room: join by code only' : 'Public room: listed in the browser';
+  $('lPlayers').innerHTML = r.players.map(p => `<div class="prow${p.id === Net.you ? ' me' : ''}"><i class="dot" style="background:${ffa ? '#c9b27a' : p.team === 1 ? '#4b88f2' : '#e3493b'}"></i><span class="pn">${esc(p.name)}${p.host ? ' ★' : ''}</span><span class="pc">${ffa ? '' : p.team === 1 ? 'Blue · ' : 'Red · '}${esc(cn[p.cls] || p.cls)}</span>${host && p.id !== Net.you ? `<button class="mini" data-kick="${esc(p.id)}">Kick</button>` : ''}</div>`).join('');
+  $('lTeamF').hidden = ffa;
+  $('lTeam').innerHTML = [[1, 'Blue Army'], [2, 'Red Army']].map(([v, t]) => `<button data-team="${v}" aria-pressed="${me.team === v}">${t}</button>`).join('');
+  $('lClass').innerHTML = NET_CLASSES.map(([v, t]) => `<button data-cls="${v}" aria-pressed="${me.cls === v}">${t}</button>`).join('');
+  const seg = (key, list, cur) => `<div class="seg">${list.map(([v, t]) => `<button data-cfg="${key}|${v}" aria-pressed="${String(cur) === String(v)}">${t}</button>`).join('')}</div>`;
+  if (host) {
+    $('lCfg').innerHTML = `<div class="field"><div class="lab">Battlefield</div>${seg('map', NET_MAPS, r.cfg.map)}</div><div class="field"><div class="lab">Mode</div>${seg('mode', NET_MODES, r.cfg.mode)}</div>
+      <div class="field"><div class="lab">${ffa ? 'Total fighters' : 'Soldiers per army'}<output>${r.cfg.n}</output></div><input type="range" id="lN" min="4" max="24" step="1" value="${r.cfg.n}"></div>
+      <div class="field"><div class="lab">Match duration</div>${seg('duration', [[180, '3 min'], [360, '6 min'], [600, '10 min']], r.cfg.duration)}</div>
+      <div class="field"><div class="lab">Visibility</div>${seg('priv', [[0, 'Public'], [1, 'Private']], r.isPrivate ? 1 : 0)}</div>`;
+    $('lN').onchange = () => netCfg('n', +$('lN').value);
+    $('lN').oninput = () => { $('lN').previousElementSibling.querySelector('output').textContent = $('lN').value; };
+  } else $('lCfg').innerHTML = `<p class="note">${esc(mp[r.cfg.map])} · ${esc(mn[r.cfg.mode])} · ${r.cfg.n} ${ffa ? 'fighters' : 'per army'} · ${Math.round(r.cfg.duration / 60)} min. Empty places are filled with AI soldiers. Only the host can change this.</p>`;
+  $('lStart').hidden = !host; $('lWait').hidden = host;
+  $('lStart').disabled = r.state !== 'lobby';
+}
+async function netCfg(k, v) {
+  const r = Net.room; if (!r) return;
+  const cfg = Object.assign({}, r.cfg); let priv = r.isPrivate;
+  if (k === 'priv') priv = !!+v; else cfg[k] = (k === 'map' || k === 'mode') ? v : +v;
+  const res = await netCall('setConfig', { cfg, isPrivate: priv }); if (!res.ok) toast(res.err || 'Could not change');
+}
+function netOnStart(msg) {
+  Net.active = true; Net.snap = null; Net.ev.length = 0; Net.sendT = 0; Net.lastEnd = null;
+  startMatch(Object.assign({}, msg.cfg, { difficulty: settings.diff }), msg);
+}
+function netMirror(msg) {
+  msg.init.forEach((a, i) => {
+    const s = match.soldiers[i]; if (!s) return;
+    s.team = a[0]; s.setClass(a[1]); s.name = a[2]; s.look = a[3]; s.hid = a[4]; s.maxHp = a[5]; s.hp = a[5]; s.isPlayer = i === msg.you; s._tx = undefined;
+  });
+  match.player = match.soldiers[msg.you];
+}
+function netApplySnap(sn) {
+  const m = match; if (!m) return;
+  m.time = sn.t; m.elapsed = sn.el; m.scores = sn.sc;
+  sn.s.forEach((a, i) => {
+    const s = m.soldiers[i]; if (!s) return;
+    const wasAlive = s.alive;
+    s.alive = !!a[5]; s.hp = a[4]; s.atkT = a[6]; s.blocking = !!a[7]; s.stagger = a[8]; s.stamina = a[9]; s.drawT = a[10]; s.loaded = !!a[11]; s.reloadT = a[12];
+    s.kills = a[13]; s.deaths = a[14]; s.vx = a[15]; s.vz = a[16]; s.sprinting = !!a[17]; s.respawnT = a[18]; s.deadT = a[19]; s.atkSeq = a[20]; s.dmgDealt = a[22]; s.teamKills = a[23];
+    const far = s._tx === undefined || (!wasAlive && s.alive) || Math.hypot(a[0] - s.x, a[2] - s.z) > 8;
+    s._tx = a[0]; s._ty = a[1]; s._tz = a[2]; s._tyaw = a[3];
+    if (far) { s.x = a[0]; s.y = a[1]; s.z = a[2]; s.yaw = a[3]; }
+  });
+  const old = new Map(m.arrows.map(a => [a.id, a]));
+  m.arrows = sn.a.map(r => { const a = old.get(r[0]) || { id: r[0] }; a.x = r[1]; a.y = r[2]; a.z = r[3]; a.vx = r[4]; a.vy = r[5]; a.vz = r[6]; a.stuck = r[7]; a.team = r[8]; a.big = !!r[9]; a.fire = !!r[10]; a.stone = !!r[11]; return a; });
+  sn.p.forEach((a, i) => { const p = m.points[i]; if (p) { p.v = a[0]; p.owner = a[1]; p.bCount = a[2]; p.rCount = a[3]; } });
+}
+function netDe(v) {
+  if (v == null || typeof v !== 'object') return v;
+  if (v.$s !== undefined) return match.soldiers[v.$s];
+  if (v.$p !== undefined) return match.points[v.$p];
+  if (Array.isArray(v)) return v.map(netDe);
+  const o = {}; for (const k in v) o[k] = netDe(v[k]); return o;
+}
+function netOnEnd(d) {
+  if (!Net.active || !match) return;
+  netApplySnap(d.s); match.ended = true; match.winner = d.winner; match.scores = d.scores; Net.snap = null;
+  Net.ev.push(['end', { winner: d.winner }]);
+}
+function netFrame(dt) {
+  const m = match; if (!m) return;
+  if (Net.snap) { netApplySnap(Net.snap); Net.snap = null; }
+  while (Net.ev.length) { const e = Net.ev.shift(); try { onEvent(e[0], netDe(e[1])); } catch (err) {} }
+  const k = 1 - Math.exp(-dt * 18), p = player();
+  for (const s of m.soldiers) {
+    if (s._tx === undefined) continue;
+    s.x += (s._tx - s.x) * k; s.y += (s._ty - s.y) * k; s.z += (s._tz - s.z) * k;
+    let dy = s._tyaw - s.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); s.yaw += dy * k;
+    if (s.atkT >= 0) s.atkT += dt; if (s.drawT >= 0) s.drawT += dt; if (!s.alive) { s.deadT += dt; s.respawnT -= dt; }
+  }
+  if (p && p.alive && state === 'playing') p.yaw = look.yaw;
+  for (const a of m.arrows) if (a.stuck <= 0) { a.x += a.vx * dt; a.y += a.vy * dt; a.z += a.vz * dt; }
+  Net.sendT += dt;
+  if (Net.sendT >= 1 / 30 && state === 'playing') {
+    Net.sendT = 0; const i = p.input, idle = paused || endPending || !p.alive;
+    const ax = i.aim;
+    netEmit('input', idle ? { mx: 0, mz: 0, yaw: look.yaw, attack: false, block: false, sprint: false, jump: false, aim: null } : { mx: i.mx, mz: i.mz, yaw: i.yaw, attack: !!i.attack, block: !!i.block, sprint: !!i.sprint, jump: !!i.jump, aim: ax ? { x: ax.x, y: ax.y, z: ax.z } : null });
+  }
+}
+/* online screens */
+$('nName').value = (() => { try { return localStorage.getItem('bb_name') || ''; } catch (e) { return ''; } })();
+$('nUrl').value = netDefaultUrl();
+$('nConnect').onclick = netConnect;
+$('nRefresh').onclick = netRefresh;
+$('nCreate').onclick = async () => { netEnter(await netCall('create', { name: netName(), isPrivate: Net.priv, cfg: { map: custom.map === 'castle' || custom.map === 'village' || custom.map === 'palace' || custom.map === 'fortress' ? custom.map : 'castle', mode: 'tdm', n: 10, duration: 360 } })); };
+$('nJoin').onclick = async () => { netEnter(await netCall('join', { code: $('nCode').value, name: netName() })); };
+document.querySelectorAll('#nPriv button').forEach(b => b.addEventListener('click', () => { Net.priv = b.dataset.val === '1'; syncOnlineUI(); }));
+$('nRooms').addEventListener('click', async (e) => { const b = e.target.closest('[data-join]'); if (b) netEnter(await netCall('join', { code: b.dataset.join, name: netName() })); });
+$('lStart').onclick = async () => { const r = await netCall('start'); if (!r.ok) toast(r.err || 'Could not start'); };
+$('lLeave').onclick = async () => { await netLeave(); show('online'); netRefresh(); };
+$('scr-lobby').addEventListener('click', async (e) => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.team) await netCall('setTeam', { team: +b.dataset.team });
+  else if (b.dataset.cls) await netCall('setClass', { cls: b.dataset.cls });
+  else if (b.dataset.cfg) { const [k, v] = b.dataset.cfg.split('|'); netCfg(k, v); }
+  else if (b.dataset.kick) await netCall('kick', { id: b.dataset.kick });
+});
+
+// online overrides for the pause / end-screen buttons (capture phase, so they run before the offline handlers)
+$('pQuit').addEventListener('click', async (e) => { if (!Net.active) return; e.stopImmediatePropagation(); teardownMatch(); await netLeave(); show('online'); netRefresh(); }, true);
+$('eMenu').addEventListener('click', async (e) => { if (!Net.active) return; e.stopImmediatePropagation(); teardownMatch(); await netLeave(); show('online'); netRefresh(); }, true);
+$('eAgain').addEventListener('click', (e) => { if (!Net.active) return; e.stopImmediatePropagation(); teardownMatch(); if (Net.room) { show('lobby'); renderLobby(); } else show('online'); }, true);
+
 /* custom battle */
-const custom = { map: 'castle', mode: 'conquest', team: '1', dur: '360', weapon: 'sword', n: 12 };
+const custom = { map: 'castle', mode: 'conquest', team: '1', dur: '360', weapon: 'sword', cls: 'knight', n: 12 };
+const NEW_MODES = { ironsquad: 1, kingstandard: 1, archers: 1, manhunt: 1, laststand: 1, champion: 1 };
+const MODE_INFO = {
+  ironsquad: 'Iron Squad: two armies where every soldier, you included, has double health. Fights are long, so teamwork and focus matter. First army to the elimination target wins.',
+  kingstandard: "King's Standard: a royal banner lies in the middle of the field. Pick it up and carry it: your army scores for every second it is held. Kill the carrier to drop it and score bonus points. First to 150 wins.",
+  archers: "Archer's Gambit: ranged classes only. Everyone fights with a longbow or crossbow. Headshots hit extra hard. First army to the elimination target wins.",
+  manhunt: 'Manhunt: the Blue army protects one hunted target (you, if you fight for Blue). Red must catch and kill the target before the timer ends. The target is faster and tougher but regenerates slowly and never respawns.',
+  laststand: 'Last Stand: the Red defenders hold the central position. Blue attackers must take it and hold it with no defender inside. Defenders win when the timer runs out.',
+  champion: 'Champion: each army has a champion with extra health and no respawn (yours is you). Kill the enemy champion and keep your own alive. If time runs out, the champion with more health wins.'
+};
+const MODE_TOAST = { ironsquad: 'Iron Squad: double health for everyone', kingstandard: 'Grab the royal banner and hold it', archers: "Archer's Gambit: ranged classes only", manhunt: null, laststand: null, champion: null };
+const MODE_END = {
+  manhunt: (m, w) => w === T_RED ? 'The target was run down.' : 'The target survived until the clock ran out.',
+  champion: (m, w, nm) => w === 0 ? 'Both champions were level when time ran out.' : `${nm}'s champion won the day.`,
+  laststand: (m, w) => w === T_BLUE ? 'The attackers took the last stand.' : 'The defenders held the position.',
+  kingstandard: (m, w, nm) => `${nm} held the royal banner longest (${m.scores[T_BLUE]} to ${m.scores[T_RED]}).`,
+  ironsquad: (m, w, nm) => `${nm} wore down the Iron Squad.`,
+  archers: (m, w, nm) => `${nm} won the archery duel.`
+};
+function buildClassScreen() {
+  const box = $('classList'); box.innerHTML = '';
+  const mx = { hp: 150, speed: 1.17, armor: 1, reach: 3.8 };
+  for (const id of Sim.CLASS_IDS) {
+    const c = Sim.CLASSES[id], w = WEAPONS[c.weapon], b = document.createElement('button'); b.className = 'clsCard'; b.dataset.cls = id;
+    const col = { knight: ['#9aa0aa', '#d4a84b', '#4b88f2'], archer: ['#3f5a2e', '#6b4a2b', '#2a3f21'], crossbowman: ['#74302f', '#55585f', '#6b4a2b'], scout: ['#24242b', '#24242b', '#4b88f2'], spearman: ['#b59a6a', '#9aa0aa', '#6b4a2b'] }[id];
+    b.innerHTML = `<div class="sw"><i style="top:6px;height:12px;background:${col[0]}"></i><i style="top:20px;height:24px;background:${col[1]};left:8px;right:8px"></i><i style="top:46px;height:14px;background:${col[2]};left:14px;right:14px"></i></div><div><b>${c.name}</b><small>${w.name}${c.shield ? ' and shield' : ''}. ${c.role}</small><div class="st"><span>Health<u><em style="width:${c.hp / mx.hp * 100}%"></em></u></span><span>Speed<u><em style="width:${c.speed / mx.speed * 100}%"></em></u></span><span>Armour<u><em style="width:${(1.05 - c.armor) / 0.35 * 100}%"></em></u></span><span>${w.ranged ? 'Range' : 'Reach'}<u><em style="width:${w.ranged ? (w.xbow ? 85 : 100) : w.reach / mx.reach * 100}%"></em></u></span></div></div>`;
+    b.onclick = () => { custom.cls = id; syncCustomUI(); syncClassScreen(); };
+    box.appendChild(b);
+  }
+  syncClassScreen();
+}
+function syncClassScreen() {
+  const ranged = custom.mode === 'archers';
+  document.querySelectorAll('#classList .clsCard').forEach(b => { const id = b.dataset.cls, ok = !ranged || id === 'archer' || id === 'crossbowman'; b.disabled = !ok; b.setAttribute('aria-pressed', String(custom.cls === id && ok)); });
+  $('classNote').textContent = ranged ? "Archer's Gambit allows ranged classes only." : 'Your class sets your weapon, armour, health and speed. Everyone on the field, soldiers included, fights as one of these five.';
+}
 function syncCustomUI() {
   document.querySelectorAll('#scr-custom .seg').forEach(seg => { const k = seg.dataset.key; seg.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.val === String(custom[k])))); });
   $('cN').value = custom.n; $('cNo').textContent = custom.n;
+  { const rg = custom.mode === 'archers'; if (rg && custom.cls !== 'archer' && custom.cls !== 'crossbowman') custom.cls = 'archer'; const c = Sim.CLASSES[custom.cls]; $('cClassBtn').textContent = c.name + ' - ' + WEAPONS[c.weapon].name + (c.shield ? ' and shield' : '') + '  (change)'; $('cClassNote').textContent = rg ? "Archer's Gambit: ranged classes only." : c.role; }
   const ffa = custom.mode === 'ffa';
-  $('cMapField').hidden = !!battleLock; $('cModeField').hidden = !!battleLock;
+  const palLock = !!battleLock && battleLock.loc.battle === 'palace';
+  $('cMapField').hidden = !!battleLock; $('cModeField').hidden = !!battleLock && !palLock;
+  document.querySelectorAll('#scr-custom [data-key=mode] button').forEach(b => { b.hidden = palLock && b.dataset.val === 'siege'; });
   $('cTeamField').hidden = ffa; $('cNLabel').textContent = ffa ? 'Fighters' : 'Soldiers per army';
   const tgt = custom.mode === 'conquest' ? 900 : Math.max(30, custom.n * 5);
-  const sg = custom.mode === 'siege'; document.querySelectorAll('#scr-custom [data-key=team] button').forEach(b => { b.textContent = sg ? (b.dataset.val === '1' ? 'Attackers (Blue)' : 'Defenders (Red)') : (b.dataset.val === '1' ? 'Blue Army' : 'Red Army'); });
-  $('cInfo').textContent = sg ? 'Attackers get 20% more soldiers. Kill the king in the keep to win as attackers; defenders win if the king survives until the timer ends.' : ffa ? 'Everyone for themselves. You and the other fighters spawn at random spots; whoever has the most kills when the timer runs out wins.' : custom.mode === 'conquest' ? `First army to ${tgt} points wins. Flags, captures and kills all score.` : `First army to ${tgt} eliminations wins.`;
+  const sg = custom.mode === 'siege', lbl = custom.mode === 'laststand' ? ['Attackers (Blue)', 'Defenders (Red)'] : custom.mode === 'manhunt' ? ['Hunted (Blue)', 'Hunters (Red)'] : sg ? ['Attackers (Blue)', 'Defenders (Red)'] : ['Blue Army', 'Red Army']; document.querySelectorAll('#scr-custom [data-key=team] button').forEach(b => { b.textContent = b.dataset.val === '1' ? lbl[0] : lbl[1]; });
+  $('cInfo').textContent = MODE_INFO[custom.mode] ? MODE_INFO[custom.mode] : sg ? 'Attackers get 20% more soldiers. Kill the king in the keep to win as attackers; defenders win if the king survives until the timer ends.' : ffa ? 'Everyone for themselves. You and the other fighters spawn at random spots; whoever has the most kills when the timer runs out wins.' : custom.mode === 'conquest' ? `First army to ${tgt} points wins. Flags, captures and kills all score.` : `First army to ${tgt} eliminations wins.`;
 }
 document.querySelectorAll('#scr-custom .seg button').forEach(b => b.addEventListener('click', () => { const k = b.parentNode.dataset.key, v = b.dataset.val; custom[k] = v;
   if (k === 'map' && v === 'fortress') custom.mode = 'siege'; if (k === 'mode' && v === 'siege') custom.map = 'fortress';
   if (k === 'map' && v !== 'fortress' && custom.mode === 'siege') custom.mode = 'conquest'; if (k === 'mode' && v !== 'siege' && custom.map === 'fortress') custom.map = 'castle';
-  syncCustomUI(); }));
+  syncCustomUI(); syncClassScreen(); }));
 $('cN').addEventListener('input', (e) => { custom.n = +e.target.value; syncCustomUI(); });
-$('cStart').onclick = () => startMatch({ map: custom.map, mode: custom.mode, team: +custom.team, n: custom.n, duration: +custom.dur, difficulty: settings.diff, weapon: custom.weapon });
+$('cStart').onclick = () => startMatch({ map: custom.map, mode: custom.mode, team: +custom.team, n: custom.n, duration: +custom.dur, difficulty: settings.diff, cls: custom.cls });
+buildClassScreen();
 
 /* settings */
 function syncSettingsUI() {
@@ -4817,7 +5549,7 @@ function xIcon(g, l, x, y, s) { // map symbols: star = major, tower = castle, ho
 }
 const xKnown = new Set(); try { for (const k of JSON.parse(localStorage.getItem('bb_xknown') || '[]')) xKnown.add(k); } catch (e) {}
 const xVisible = (l) => !l.hidden || xKnown.has(l.id);
-const xCountryLabel = (l) => l.battle ? 'Battle map: ' + ({ castle: 'Castle Grounds', village: 'Medieval Village', fortress: 'The Fortress (Fortress Siege)' }[l.battle]) : l.future ? 'Future battle location' : '';
+const xCountryLabel = (l) => l.battle ? 'Battle map: ' + ({ castle: 'Castle Grounds', village: 'Medieval Village', fortress: 'The Fortress (Fortress Siege)', palace: 'Central Palace' }[l.battle]) : l.future ? 'Future battle location' : '';
 
 /* ---------- the explorer: player, horse, collisions ---------- */
 function xSpawn(loc) {
@@ -5121,9 +5853,10 @@ function loop(now) {
     if (orderMark && orderMark.visible && (orderT -= dt) <= 0) orderMark.visible = false;
     // capture point visuals
     const t = now / 1000;
+    const lsI = match && match.mode === 'laststand' && match.stand ? world.def.points.findIndex(q => q.id === match.stand.id) : -1;
     for (const pv of world.pointVis) {
-      const mp = match && match.points ? match.points[world.pointVis.indexOf(pv)] : null;
-      const v = mp && match.mode === 'conquest' ? mp.v : 0, a = Math.abs(v) / 100;
+      const pi = world.pointVis.indexOf(pv), mp = match && match.points ? (match.mode === 'laststand' ? (pi === lsI ? match.stand : null) : match.points[pi]) : null;
+      const v = mp && (match.mode === 'conquest' || match.mode === 'laststand') ? mp.v : 0, a = Math.abs(v) / 100;
       const hex = v > 0 ? 0x4b88f2 : v < 0 ? 0xe3493b : 0x9a9588;
       const col = pv.mats.flag.color; col.setHex(hex);
       pv.mats.ring.color.setHex(hex); pv.mats.disc.color.setHex(hex); pv.mats.beam.color.setHex(hex);
@@ -5131,14 +5864,15 @@ function loop(now) {
       if (cont) { pv.mats.ring.color.setHex(0xffd36a); pv.mats.ring.opacity = 0.6 + 0.4 * Math.sin(t * 9); } else pv.mats.ring.opacity = 0.85;
       pv.mats.beam.opacity = 0.1 + a * 0.18;
       pv.flag.position.y = 1.4 + a * 4.2; pv.flag.position.z = Math.sin(t * 3 + pv.p.x) * 0.12;
-      pv.g.visible = !match || match.mode === 'conquest';
+      pv.g.visible = !match || match.mode === 'conquest' || (match.mode === 'laststand' && pi === lsI);
     }
   }
   if (state === 'explore' && xs) {
     if (!paused) updateExplore(dt);
     xFrame(dt);
   } else if (match && (state === 'playing' || state === 'ended')) {
-    if (state === 'playing' && !paused) {
+    if (Net.active) { if (state === 'playing' && !paused) updatePlayer(dt); netFrame(dt); }
+    else if (state === 'playing' && !paused) {
       updatePlayer(dt);
       match.step(dt);
     } else if (state === 'ended') match.step(dt);
@@ -5159,7 +5893,6 @@ window.__bb = { get match() { return match; }, startMatch, Sim, Continent, start
 })();
 
 </script>
-
 
 
 </body></html>

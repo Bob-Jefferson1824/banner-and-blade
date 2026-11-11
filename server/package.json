@@ -1,0 +1,10 @@
+{
+  "name": "banner-and-blade-server",
+  "version": "1.0.0",
+  "description": "Authoritative multiplayer server for Banner & Blade (Node.js + Socket.IO)",
+  "main": "server.js",
+  "scripts": { "start": "node server.js", "test": "node test_mp.js" },
+  "engines": { "node": ">=16" },
+  "dependencies": { "socket.io": "^4.7.5" },
+  "devDependencies": { "socket.io-client": "^4.7.5" }
+}

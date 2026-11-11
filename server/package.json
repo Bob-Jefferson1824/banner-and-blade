@@ -3,8 +3,27 @@
   "version": "1.0.0",
   "description": "Authoritative multiplayer server for Banner & Blade (Node.js + Socket.IO)",
   "main": "server.js",
-  "scripts": { "start": "node server.js", "test": "node test_mp.js" },
-  "engines": { "node": ">=16" },
-  "dependencies": { "socket.io": "^4.7.5" },
-  "devDependencies": { "socket.io-client": "^4.7.5" }
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test_mp.js",
+    "db:migrate": "node db/migrate.js up",
+    "db:status": "node db/migrate.js status",
+    "db:backup": "node db/backup.js backup",
+    "db:verify-backup": "node db/backup.js verify",
+    "test:db": "node db/test_db.js",
+    "test:db:pg": "DB_DRIVER=pg node db/test_db.js",
+    "test:pg-adapter": "node db/test_pg_adapter.js",
+    "test:socketio": "node test_socketio.js",
+    "verify": "node verify.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "dependencies": {
+    "pg": "^8.11.3",
+    "socket.io": "^4.7.5"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.7.5"
+  }
 }

@@ -5093,7 +5093,7 @@ async function netConnect() {
   try {
     await netLoadLib(url);
     if (Net.sock) { try { Net.sock.close(); } catch (e) {} }
-    const sock = Net.sock = io(url, { transports: ['websocket', 'polling'], reconnection: false, timeout: 8000 });
+const sock = Net.sock = io(url, { transports: ['polling', 'websocket'], reconnection: false, timeout: 8000 });
     await new Promise((res, rej) => { sock.once('connect', res); sock.once('connect_error', (e) => rej(new Error('Could not reach the server (' + (e && e.message || 'connect error') + ')'))); });
     Net.connected = true; Net.url = url; Net.you = sock.id;
     sock.on('room', netOnRoom); sock.on('start', netOnStart); sock.on('snap', (s) => { Net.snap = s; });

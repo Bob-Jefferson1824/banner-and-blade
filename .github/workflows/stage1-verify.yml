@@ -1,7 +1,7 @@
 # Banner & Blade: Stage 1 verification. Runs on GitHub's own servers (they have npm access), so nothing needs to be run on your computer.
 # It starts by itself when this file is committed to the branch "stage1-verification" (it never runs for main).
 # To run it again (for example after adding the RENDER_CHECK_URL secret): Actions tab > the latest run > Re-run all jobs.
-# Read the result in the run's Summary page.
+# Read the result in the run's Summary page. The run also offers package-lock.json as a downloadable artifact.
 # It never touches production: it uses a throw-away PostgreSQL container, and (optionally) the STAGING database in the
 # repository secret RENDER_CHECK_URL for a read-only connection/TLS check.
 name: Stage 1 verification
@@ -41,9 +41,16 @@ jobs:
           sudo apt-get install -y -qq postgresql-client-16 >/dev/null
           /usr/lib/postgresql/16/bin/psql --version
           echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
-      - name: npm install (installs pg and socket.io for real)
+      - name: npm install (installs pg and socket.io for real; uses the committed package-lock.json when there is one)
         working-directory: ${{ env.SERVER_DIR }}
-        run: npm install --no-audit --no-fund
+        run: |
+          if [ -f package-lock.json ]; then
+            echo "package-lock.json found: npm ci (exact versions)"
+            npm ci --no-audit --no-fund
+          else
+            echo "no package-lock.json yet: npm install (it will create one; download it from this run's artifacts)"
+            npm install --no-audit --no-fund
+          fi
       - name: Run every Stage 1 check
         working-directory: ${{ env.SERVER_DIR }}
         env:
@@ -64,4 +71,11 @@ jobs:
         with:
           name: stage1-verify-output
           path: ${{ env.SERVER_DIR }}/verify-output.txt
+          if-no-files-found: ignore
+      - name: Keep the generated package-lock.json (download it from this run's Artifacts and commit it to the server folder)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-lock
+          path: ${{ env.SERVER_DIR }}/package-lock.json
           if-no-files-found: ignore

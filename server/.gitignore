@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# secrets and local configuration (copy .env.example to .env; never commit .env)
+.env
+.env.*
+!.env.example
+
+# database backups and dumps (they contain player data)
+backups/
+*.dump
+*.pgdump
+*.sql.gz
+
+# logs and local files
+*.log
+.DS_Store

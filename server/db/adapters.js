@@ -25,13 +25,16 @@ function sslOptions(url, env) {
   throw new Error('DB_SSL must be auto, disable, require or verify');
 }
 const stripSsl = (url) => url.replace(/([?&])(sslmode|ssl|sslrootcert)=[^&]*/gi, '$1').replace(/[?&]$/, '').replace('?&', '?');
+/* pg parses booleans into JavaScript true/false, but this interface promises text exactly as psql prints it ('t' / 'f'),
+   and migrate.js / check_connection.js compare against 't'. Everything else is already text-compatible for the types we use. */
+const norm = (v) => (v == null ? null : v === true ? 't' : v === false ? 'f' : String(v));
 class PgAdapter {
   constructor(url, env) { this.url = url; this.env = env || process.env; }
   async connect() {
     const { Client } = require('pg'); const t = sslOptions(this.url, this.env); this.sslMode = t.mode;
     this.c = new Client({ connectionString: stripSsl(this.url), ssl: t.ssl, connectionTimeoutMillis: 10000 }); await this.c.connect();
   }
-  async query(sql) { const r = await this.c.query({ text: sql, rowMode: 'array' }); return (Array.isArray(r) ? r[r.length - 1] : r).rows.map(row => row.map(v => (v == null ? null : String(v)))); }
+  async query(sql) { const r = await this.c.query({ text: sql, rowMode: 'array' }); return (Array.isArray(r) ? r[r.length - 1] : r).rows.map(row => row.map(norm)); }
   async exec(script) { await this.c.query(script); }
   async close() { if (this.c) await this.c.end(); }
 }

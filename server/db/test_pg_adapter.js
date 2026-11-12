@@ -11,6 +11,7 @@ let fails = 0; const ok = (c, m) => { if (!c) { fails++; console.log('FAIL', m);
   await a.connect(); await b.connect();
   try {
     ok(JSON.stringify(await a.query('SELECT 1, \'x\', NULL')) === '[["1","x",null]]', 'query returns rows as text arrays (NULL -> null)');
+    ok(JSON.stringify(await a.query('SELECT true, false, true AND false')) === '[["t","f","f"]]', 'booleans come back as psql-style "t"/"f" (not "true"/"false"), which migrate.js and check_connection.js rely on');
     await a.exec('CREATE TEMP TABLE t (id int); BEGIN; INSERT INTO t VALUES (1); INSERT INTO t VALUES (2); COMMIT');
     ok((await a.query('SELECT count(*) FROM t'))[0][0] === '2', 'exec runs several statements incl. BEGIN/COMMIT in one call');
     let err = ''; try { await a.exec('BEGIN; INSERT INTO t VALUES (3); SELECT 1/0; COMMIT'); } catch (e) { err = e.message; }

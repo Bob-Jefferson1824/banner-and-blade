@@ -29,6 +29,11 @@ for (const [name, args, env0] of suites) {
     const pick = status === 'FAILED' ? lines.filter(l => /^PROBLEM/.test(l)) : lines.filter(l => /(TLS in use|role:|environment tag)/.test(l));
     detail = (pick.length ? pick.map(l => l.replace(/\s+/g, ' ').trim()).join(' | ') : last) + (r.stderr && status === 'FAILED' ? ' | ' + r.stderr.trim().split('\n').pop() : '');
   }
+  if (status !== 'PASSED' && !/check_connection/.test(args[0])) {   // show WHY a suite failed or did not run (lines starting FAIL / TEST CRASH / NOT RUN, plus any error text)
+    const bad = ((r.stdout || '') + '\n' + (r.stderr || '')).split('\n').filter(l => /^(FAIL|TEST CRASH|NOT RUN|refusing|MIGRATION ERROR|Error|    at )/.test(l)).slice(0, 40);
+    if (bad.length) { console.log('--- ' + name + ': ' + status + ' (first ' + bad.length + ' problem lines) ---'); console.log(bad.join('\n')); console.log('--- end ---'); }
+    if (r.error) console.log('--- ' + name + ': could not start: ' + r.error.message);
+  }
   rows.push([name, status, detail]);
 }
 for (const [n, s, d] of rows) console.log(s.padEnd(8) + ' ' + n + '   [' + d + ']');

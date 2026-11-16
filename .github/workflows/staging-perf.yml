@@ -76,6 +76,7 @@ jobs:
       STAGING_STATS_SECRET: ${{ secrets.STAGING_STATS_SECRET }}
     steps:
       - name: Check secrets exist
+        working-directory: .
         run: |
           if [ -z "$STAGING_URL" ] || [ -z "$STAGING_STATS_SECRET" ]; then echo "STAGING_URL / STAGING_STATS_SECRET not set yet. Nothing to run (this is expected until you approve the staging service)."; echo "NO_SECRETS=1" >> "$GITHUB_ENV"; fi
       - uses: actions/checkout@v4

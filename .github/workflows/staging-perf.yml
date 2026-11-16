@@ -1,0 +1,94 @@
+name: staging-perf
+# Runs ONLY on the staging-perf branch of this repository. A manual run from any other branch (including main) is skipped by the `if:` guards below. Needs no database and no production secrets.
+on:
+  push:
+    branches: [staging-perf]
+  workflow_dispatch:
+concurrency:
+  group: staging-perf
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  local-checks:
+    name: Local checks (no secrets, no network to Render)
+    if: github.ref == 'refs/heads/staging-perf' && github.repository == 'Bob-Jefferson1824/banner-and-blade'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults: { run: { working-directory: server } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: No test stand-ins or harness files anywhere under server/
+        working-directory: .
+        run: |
+          if find server -ipath '*harness*' -o -ipath '*FAKE_socketio*' -o -ipath '*TEST_ONLY*' | grep -q .; then echo "Test-only files found under server/"; find server -ipath '*harness*' -o -ipath '*FAKE_socketio*' -o -ipath '*TEST_ONLY*'; exit 1; fi
+          echo "ok: no stand-ins under server/"
+      - run: npm ci
+      - name: Real socket.io-client was installed by npm ci (not a stand-in)
+        run: node -e "const p=require('socket.io-client/package.json'); if(p.name!=='socket.io-client'||!/^4\./.test(p.version)||p.FAKE_TEST_ONLY){console.log('unexpected',p.name,p.version);process.exit(1)} console.log('real socket.io-client',p.version)"
+      - name: Syntax check
+        run: |
+          node --check server.js && node --check hub.js && node --check perf/stats.js
+          node --check perf/staging_load_test.js && node --check perf/regression_local.js && node --check perf/staging_gate.js && node --check perf/selftest.js
+      - name: Existing server tests (original behaviour unchanged)
+        run: npm test
+      - name: Self-tests (staging gate, per-room game speed, discard accounting, event-loop baseline)
+        run: node perf/selftest.js
+      - name: Switch regression (baseline vs fixed step vs broadcast-once)
+        run: node perf/regression_local.js 10
+      - name: Test runner refuses production and look-alike hosts
+        run: |
+          S=0123456789abcdef0123456789abcdef
+          for U in https://banner-and-blade.onrender.com https://example.com http://banner-and-blade-staging.onrender.com https://banner-and-blade-staging.onrender.com.evil.com https://banner-and-blade-staging.onrender.com/some/path https://banner-and-blade-staging.onrender.com:8443 https://user:pw@banner-and-blade-staging.onrender.com; do
+            set +e; STAGING_URL=$U STAGING_STATS_SECRET=$S node perf/staging_load_test.js; C=$?; set -e
+            if [ "$C" != "2" ]; then echo "Runner did NOT refuse $U (exit $C)"; exit 1; fi
+          done
+          echo "All refusals confirmed."
+      - name: Staging mode off => /stats does not exist (production-like behaviour)
+        run: |
+          PORT=3991 node server.js & P=$!; sleep 3
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' 127.0.0.1:3991/stats); kill $P
+          [ "$CODE" = "404" ] && echo "ok: /stats is 404 without a staging secret" || { echo "unexpected $CODE"; exit 1; }
+      - name: Runner end-to-end against a local staging-mode server
+        env: { BB_RUNNER_ALLOW_LOCALHOST: '1' }
+        run: |
+          S=0123456789abcdef0123456789abcdef
+          BB_STAGING_SECRET=$S BB_FIXED_STEP=1 BB_SNAP_HZ=20 PORT=3992 node server.js & P=$!; sleep 3
+          cat > /tmp/plan_smoke.json <<'J'
+          {"label":"local smoke test","expectFlags":{"fixedStep":true},"warmup":{"maxColdStartSeconds":20,"idleSeconds":1,"warmupMatchSeconds":5},
+           "startupSeconds":3,"windowSeconds":10,"pauseBetweenStagesSeconds":1,
+           "abort":{"eventLoopP99Ms":500,"minSnapshotRatio":0.3,"maxDisconnects":0,"minSimSpeed":0.9,"maxErrors":0},
+           "stages":[{"name":"smoke 1 player","rooms":1,"players":1,"n":4},{"name":"smoke 2 players","rooms":1,"players":2,"n":6}]}
+          J
+          STAGING_URL=http://127.0.0.1:3992 STAGING_STATS_SECRET=$S BB_PLAN=/tmp/plan_smoke.json node perf/staging_load_test.js; C=$?
+          kill $P; exit $C
+  staging-run:
+    name: Progressive staging test (needs the two staging secrets)
+    needs: local-checks
+    if: github.ref == 'refs/heads/staging-perf' && github.repository == 'Bob-Jefferson1824/banner-and-blade'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults: { run: { working-directory: server } }
+    env:
+      STAGING_URL: ${{ secrets.STAGING_URL }}
+      STAGING_STATS_SECRET: ${{ secrets.STAGING_STATS_SECRET }}
+    steps:
+      - name: Check secrets exist
+        run: |
+          if [ -z "$STAGING_URL" ] || [ -z "$STAGING_STATS_SECRET" ]; then echo "STAGING_URL / STAGING_STATS_SECRET not set yet. Nothing to run (this is expected until you approve the staging service)."; echo "NO_SECRETS=1" >> "$GITHUB_ENV"; fi
+      - uses: actions/checkout@v4
+        if: env.NO_SECRETS != '1'
+      - uses: actions/setup-node@v4
+        if: env.NO_SECRETS != '1'
+        with: { node-version: 20 }
+      - if: env.NO_SECRETS != '1'
+        run: npm ci
+      - name: Run progressive test (verifies the host name and the staging identity first)
+        if: env.NO_SECRETS != '1'
+        run: node perf/staging_load_test.js
+      - name: Save results file
+        if: always() && env.NO_SECRETS != '1'
+        uses: actions/upload-artifact@v4
+        with: { name: staging-results, path: server/perf/results.json, if-no-files-found: ignore }

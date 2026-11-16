@@ -1,0 +1,72 @@
+{
+ "label": "baseline (no switches)",
+ "expectFlags": {
+  "fixedStep": false,
+  "compress": false,
+  "broadcast": false
+ },
+ "warmup": {
+  "maxColdStartSeconds": 240,
+  "idleSeconds": 30,
+  "warmupMatchSeconds": 20
+ },
+ "maxTotalMinutes": 25,
+ "startupSeconds": 12,
+ "windowSeconds": 45,
+ "pauseBetweenStagesSeconds": 5,
+ "abort": {
+  "eventLoopP99Ms": 120,
+  "minSnapshotRatio": 0.6,
+  "maxDisconnects": 0,
+  "maxThrottledSeconds": 5,
+  "minSimSpeed": 0.95,
+  "maxErrors": 0,
+  "runnerLoopP99Ms": 100
+ },
+ "stages": [
+  {
+   "name": "S0 sanity",
+   "rooms": 1,
+   "players": 1,
+   "n": 4
+  },
+  {
+   "name": "S1 small",
+   "rooms": 1,
+   "players": 2,
+   "n": 10
+  },
+  {
+   "name": "S2 medium",
+   "rooms": 1,
+   "players": 4,
+   "n": 10
+  },
+  {
+   "name": "S3 many soldiers",
+   "rooms": 1,
+   "players": 4,
+   "n": 24
+  },
+  {
+   "name": "S4 full room",
+   "rooms": 1,
+   "players": 8,
+   "n": 24
+  },
+  {
+   "name": "S5 two rooms",
+   "rooms": 2,
+   "players": 4,
+   "n": 10
+  },
+  {
+   "name": "S6 full match",
+   "rooms": 1,
+   "players": 4,
+   "n": 10,
+   "fullMatch": true,
+   "matchDuration": 180
+  }
+ ]
+}

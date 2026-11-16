@@ -15,6 +15,13 @@ const clampN = (v, a, b, d) => Math.min(b, Math.max(a, fin(v, d)));
 function createHub(Sim, opts) {
   opts = opts || {};
   const log = opts.log || (() => {});
+  // Staging-only performance switches (server.js passes them ONLY when the staging secret is set; production never does,
+  // so with no opts.perf every line below behaves exactly as before).
+  const perf = opts.perf || {};
+  const FIXED = !!perf.fixedStep;                                              // fixed 1/30 s steps with an accumulator
+  const SNAP = FIXED ? 1 / (perf.snapHz === 15 ? 15 : 20) : SNAP_EVERY;        // snapshot interval
+  const CAP = FIXED ? Math.min(0.25, Math.max(0.05, +perf.catchupCap || 0.1)) : 0.25; // longest catch-up per tick
+  const pstats = perf.stats || null;
   const rooms = new Map();     // code -> room
   const clients = new Map();   // id -> client
   let timer = null, last = Date.now();
@@ -125,21 +132,24 @@ function createHub(Sim, opts) {
       inp.mx = i.mx; inp.mz = i.mz; inp.yaw = i.yaw; inp.attack = i.attack; inp.block = i.block; inp.sprint = i.sprint; inp.jump = i.jump;
       inp.aim = i.aim ? { x: i.aim.x, y: i.aim.y, z: i.aim.z } : null;
     }
-    m.step(dt);
+    if (pstats) { const t0 = process.hrtime.bigint(); m.step(dt); pstats.onStep(Number(process.hrtime.bigint() - t0) / 1e6, dt, room.code); } else m.step(dt);
     room.snapAcc += dt;
-    if (room.snapAcc >= SNAP_EVERY) {
-      room.snapAcc = 0;
+    if (room.snapAcc >= SNAP - (FIXED ? 1e-9 : 0)) {
+      if (FIXED) room.snapAcc -= SNAP; else room.snapAcc = 0;
       const snap = snapshot(room), ev = room.evq; room.evq = [];
-      for (const mem of room.members.values()) { mem.client.send('snap', snap); if (ev.length) mem.client.send('ev', ev); }
+      if (perf.broadcast && opts.broadcast) { const ids = [...room.members.keys()]; opts.broadcast(ids, 'snap', snap); if (ev.length) opts.broadcast(ids, 'ev', ev); }
+      else for (const mem of room.members.values()) { mem.client.send('snap', snap); if (ev.length) mem.client.send('ev', ev); }
+      if (pstats) pstats.onSnapshot();
     }
     if (m.ended) { if (room.evq.length) { for (const mem of room.members.values()) mem.client.send('ev', room.evq); room.evq = []; } finishRoom(room); }
   }
   function tick() {
-    const now = Date.now(); let el = Math.min(0.25, (now - last) / 1000); last = now;
+    const now = Date.now(); const rawEl = (now - last) / 1000; let el = Math.min(0.25, rawEl); last = now;
+    if (pstats && rawEl > el && pstats.onDiscard) pstats.onDiscard(rawEl - el, 'stall');   // original 0.25 s limit: time lost after a long server stall (also in the unmodified server)
     for (const room of [...rooms.values()]) {
       if (room.dead) continue;
       if (room.match && !room.match.ended) {
-        let t = el; try { while (t > 1e-6) { const d = Math.min(TICK, t); stepRoom(room, d); t -= d; } } catch (e) { log('match crashed: ' + (e && e.stack || e)); for (const mem of room.members.values()) mem.client.send('error', { msg: 'Match crashed on the server; returning to lobby.' }); room.match = null; room.state = 'lobby'; broadcastRoom(room); }
+        try { if (FIXED) { const want = (room.acc || 0) + el; if (want > CAP && pstats && pstats.onDiscard) pstats.onDiscard(want - CAP, 'cap', room.code); room.acc = Math.min(want, CAP); while (room.acc >= TICK - 1e-9) { stepRoom(room, TICK); room.acc -= TICK; } } else { let t = el; while (t > 1e-6) { const d = Math.min(TICK, t); stepRoom(room, d); t -= d; } } } catch (e) { log('match crashed: ' + (e && e.stack || e)); for (const mem of room.members.values()) mem.client.send('error', { msg: 'Match crashed on the server; returning to lobby.' }); room.match = null; room.state = 'lobby'; broadcastRoom(room); }
       } else if (room.match && room.match.ended) { try { stepRoom(room, 0); } catch (e) {} }
       if (room.state === 'lobby' && now - room.touched > LOBBY_IDLE_MS) { for (const mem of room.members.values()) { mem.client.send('closed', { msg: 'Room closed (idle).' }); mem.client.room = null; } destroyRoom(room); }
     }

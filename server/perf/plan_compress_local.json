@@ -1,0 +1,47 @@
+{
+ "compressionTest": true,
+ "expectFlags": {
+  "fixedStep": false,
+  "broadcast": false
+ },
+ "warmup": {
+  "maxColdStartSeconds": 30,
+  "idleSeconds": 1,
+  "warmupMatchSeconds": 8
+ },
+ "maxTotalMinutes": 9,
+ "startupSeconds": 8,
+ "windowSeconds": 45,
+ "pauseBetweenStagesSeconds": 5,
+ "abort": {
+  "eventLoopP99Ms": 120,
+  "minSnapshotRatio": 0.6,
+  "maxDisconnects": 0,
+  "maxThrottledSeconds": 5,
+  "minSimSpeed": 0.95,
+  "maxErrors": 0,
+  "runnerLoopP99Ms": 100
+ },
+ "label": "compression test (local loopback): load stages",
+ "headlineStage": "C2 8 players",
+ "stages": [
+  {
+   "name": "C1 4 players",
+   "rooms": 1,
+   "players": 4,
+   "n": 24
+  },
+  {
+   "name": "C2 8 players",
+   "rooms": 1,
+   "players": 8,
+   "n": 24
+  },
+  {
+   "name": "C3 two rooms",
+   "rooms": 2,
+   "players": 4,
+   "n": 10
+  }
+ ]
+}

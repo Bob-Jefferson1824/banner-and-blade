@@ -5,10 +5,13 @@
    (or localhost for the local self-test only), AND (2) the server itself answers /stats with role "staging" using the staging secret.
    The production server has no /stats page, so it can never pass check (2).
    Environment: STAGING_URL, STAGING_STATS_SECRET. Settings: perf/plan.json. Output: perf/results.json and a Markdown table. */
-const fs = require('fs'), path = require('path');
+const fs = require('fs'), path = require('path'), crypto = require('crypto');
 let io; // socket.io-client is loaded only after the safety checks pass
 const plan = JSON.parse(fs.readFileSync(process.env.BB_PLAN || path.join(__dirname, 'plan.json'), 'utf8'));
 const URLSTR = process.env.STAGING_URL || '', SECRET = process.env.STAGING_STATS_SECRET || '';
+const RESULTS_NAME = /^[A-Za-z0-9._-]+\.json$/.test(process.env.BB_RESULTS_FILE || '') ? process.env.BB_RESULTS_FILE : 'results.json';   // each run can write its own file (plain file name only, always inside perf/)
+const RUN_TAG = String(process.env.BB_RUN_TAG || '').replace(/[^A-Za-z0-9._-]/g, '').slice(0, 40);
+const STARTED_AT = new Date().toISOString();
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const now = () => Number(process.hrtime.bigint()) / 1e6;
 const pct = (a, p) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(s.length * p))]; };
@@ -54,7 +57,7 @@ class Bot {
       this.s.on('error', () => { this.errs++; });
       this.s.on('closed', (m) => { this.closed = (m && m.msg) || 'closed'; this.errs++; });
       this.s.on('end', (p) => { if (this.ended) { this.dupEnd = (this.dupEnd || 0) + 1; return; } this.ended = true; this.endT = now(); this.endInfo = p && typeof p === 'object' ? { winner: p.winner, elapsed: p.elapsed, scores: p.scores } : null; });   // the server sends 'end' exactly once per player; a second one is itself a fault
-      try { this.s.io.engine.on('data', (d) => { this.bytes += typeof d === 'string' ? d.length : (d.byteLength || 0); }); } catch (e) {}
+      try { this.s.io.engine.on('data', (d) => { this.bytes += typeof d === 'string' ? Buffer.byteLength(d, 'utf8') : (d.byteLength || 0); }); } catch (e) {}
     });
   }
   call(ev, d) { return new Promise((r) => { const t = setTimeout(() => r(null), 5000); this.s.emit(ev, d, (a) => { clearTimeout(t); r(a); }); }); }
@@ -64,6 +67,7 @@ class Bot {
     this.om = setInterval(() => { if (!this.s.connected) return; this.s.emit('order', Math.random() < 0.5 ? { type: 'call' } : { type: 'send', x: Math.cos(k) * 30, z: Math.sin(k) * 30 }); }, 4000);
     this.pm = setInterval(async () => { if (!this.s.connected) return; const t0 = now(); const a = await this.call('ping'); if (a) this.rtt.push(now() - t0); }, 1000);
   }
+  negotiated() { try { const ws = this.s.io.engine.transport.ws, ex = ws && ws.extensions; if (ex === undefined || ex === null) return null; return /permessage-deflate/.test(typeof ex === 'string' ? ex : Object.keys(ex).join(',')); } catch (e) { return null; } }   // true / false / null = could not be read
   stop() { if (this.dead) return; this.dead = true; clearInterval(this.tm); clearInterval(this.om); clearInterval(this.pm); try { this.s.emit('leave'); this.s.close(); } catch (e) {} }
 }
 async function startRoom(roomIdx, players, n, duration) {
@@ -82,6 +86,35 @@ async function startRoomInner(bots, roomIdx, players, n, duration) {
   if (!bots.every(b => b.started)) throw new Error('match did not start');
   for (const b of bots) b.play();
   return bots;
+}
+
+/* ---------- compression facts and validity checks (only used when plan.compressionTest is true) ---------- */
+function compressionFacts(bots, marks, server) {
+  const clientBytes = bots.reduce((a, b, i) => a + (b.bytes - marks[i].bytes), 0);
+  const snaps = bots.reduce((a, b, i) => a + b.snaps.slice(marks[i].s).length, 0);
+  const w = server.window, wire = w.wireBytesOut, neg = bots.map(b => b.negotiated()), ld = (server.load && server.load.deflate) || {};
+  return { clientBytesReceived: clientBytes, snapshotsDelivered: snaps, wireBytesOut: wire,
+    wireUncompressedRatio: clientBytes > 0 && typeof wire === 'number' ? wire / clientBytes : null,   // bytes the server wrote / bytes the players decoded
+    cpuMsPerDeliveredSnapshot: snaps > 0 ? (w.cpuUserS + w.cpuSystemS) * 1000 / snaps : null,
+    clientsNegotiated: neg.filter(x => x === true).length, clientsNotNegotiated: neg.filter(x => x === false).length, clientsUnknown: neg.filter(x => x === null).length,
+    serverDeflate: ld.deflate, serverDeflateKnown: ld.known, serverClients: ld.total, versions: (server.instance && server.instance.versions) || null };
+}
+function compressionReasons(c, expectOn, nBots, checkRatio) {
+  const re = [];
+  if (!(c.wireBytesOut > 0)) re.push('wire bytes were not measured (the server reported 0)');
+  if (!(c.clientBytesReceived > 0)) re.push('the players received no data');
+  if (c.clientsUnknown > 0) re.push(`could not read the negotiated websocket extensions for ${c.clientsUnknown} player(s)`);
+  if (c.serverDeflateKnown === undefined || c.serverDeflateKnown !== c.serverClients || !(c.serverClients >= nBots)) re.push('the server could not read the negotiated websocket extensions for every player');
+  else if (expectOn) { if (c.serverDeflate !== c.serverClients) re.push(`permessage-deflate was NOT negotiated for ${c.serverClients - c.serverDeflate} of ${c.serverClients} connection(s) (server view)`); }
+  else if (c.serverDeflate !== 0) re.push(`permessage-deflate was negotiated for ${c.serverDeflate} connection(s) although compression is off`);
+  if (c.clientsUnknown === 0) { if (expectOn && c.clientsNegotiated !== nBots) re.push(`permessage-deflate was NOT negotiated for ${nBots - c.clientsNegotiated} of ${nBots} player(s) (player view)`); if (!expectOn && c.clientsNegotiated > 0) re.push(`${c.clientsNegotiated} player(s) negotiated permessage-deflate although compression is off`); }
+  if (checkRatio) {
+    const q = c.wireUncompressedRatio;
+    if (q == null || !isFinite(q)) re.push('wire bytes and decompressed bytes could not be compared');
+    else if (!expectOn && (q < 0.95 || q > 1.2)) re.push(`inconsistent byte counts: with compression OFF the wire/decompressed ratio should be about 1.0 but was ${f2(q)}`);
+    else if (expectOn && (q <= 0.05 || q > 1.05)) re.push(`inconsistent byte counts: with compression ON the wire/decompressed ratio was ${f2(q)} (expected above 0.05 and no more than 1.05)`);
+  }
+  return re;
 }
 
 /* ---------- stages ---------- */
@@ -107,6 +140,7 @@ async function runStage(st, flags, label) {
       clientRateMin: min('rate'), clientRateMean: per.reduce((a, p) => a + p.rate, 0) / per.length, gapP95Worst: max('gapP95'), gapMaxWorst: max('gapMax'), kbpsUncompressedPerPlayer: per.reduce((a, p) => a + p.kbps, 0) / per.length,
       rttP50Worst: max('rttP50'), rttP95Worst: max('rttP95'), rttMaxWorst: max('rttMax'), disconnects: per.reduce((a, p) => a + p.disc, 0), errors: per.reduce((a, p) => a + p.errs, 0), matchEndedEarly: per.some(p => p.ended), serverClosed: per.some(p => p.closed),
       server: server.window, serverMemory: server.memory, serverLoad: server.load, rssMaxSampledMB: server.memory.rssMaxSampledMB, simSpeed: server.window.gameSpeedSlowestRoom, roomsMeasured: server.window.roomsMeasured, runnerLagP99Ms: runnerLagMs(), earlyStop };
+    if (plan.compressionTest) { res.compression = compressionFacts(bots, marks, server); res.compressionReasons = compressionReasons(res.compression, process.env.BB_EXPECT_COMPRESS === 'on', bots.length, true); }
     return res;
   } finally { for (const b of bots) b.stop(); await sleep(plan.pauseBetweenStagesSeconds * 1000); }
 }
@@ -172,7 +206,8 @@ async function runFullMatchStage(st, flags) {
       matchLengthSetting: duration, matchWallSeconds: wallS, matchGameSeconds: gameS, matchSpeed, endedBy, winners, maxWaitSeconds: maxWait, matchesFinished: speeds.length, matchesStarted: rooms.length,
       clientRateMin: min('rate'), clientRateMean: per.reduce((a, p) => a + p.rate, 0) / per.length, gapP95Worst: max('gapP95'), gapMaxWorst: max('gapMax'), kbpsUncompressedPerPlayer: per.reduce((a, p) => a + p.kbps, 0) / per.length,
       rttP50Worst: max('rttP50'), rttP95Worst: max('rttP95'), rttMaxWorst: max('rttMax'), disconnects: per.reduce((a, p) => a + p.disc, 0), errors: per.reduce((a, p) => a + p.errs, 0), matchEndedEarly: false, serverClosed: per.some(p => p.closed),
-      server: server.window, serverMemory: server.memory, serverLoad: server.load, rssMaxSampledMB: server.memory.rssMaxSampledMB, simSpeed: lastSpeed, roomsMeasured: lastRooms, runnerLagP99Ms: runnerLagMs(), earlyStop, fullReasons: reasons };
+      compression: plan.compressionTest ? compressionFacts(bots, marks, server) : undefined,
+      server: server.window, serverMemory: server.memory, serverLoad: server.load, rssMaxSampledMB: server.memory.rssMaxSampledMB, simSpeed: lastSpeed, roomsMeasured: lastRooms, runnerLagP99Ms: runnerLagMs(), earlyStop, fullReasons: reasons.concat(plan.compressionTest ? compressionReasons(compressionFacts(bots, marks, server), process.env.BB_EXPECT_COMPRESS === 'on', bots.length, false) : []) };
   } finally { for (const b of bots) b.stop(); await sleep(plan.pauseBetweenStagesSeconds * 1000); }   // every bot is closed, whatever happened
 }
 
@@ -198,6 +233,12 @@ process.on('SIGTERM', () => { say('Cancelled.'); finish(1, results, {}); });
   if (idr.status !== 200 || !idr.body || idr.body.role !== 'staging') refuse('the server did not identify itself as a staging server (production has no /stats page)');
   const flags = idr.body.flags, inst = idr.body.instance;
   for (const [k, v] of Object.entries(plan.expectFlags || {})) if (flags[k] !== v) { say(`STOPPED: server switch ${k} is ${flags[k]} but the plan expects ${v}. Change the staging environment variable or the plan, then re-run.`); finish(3); return; }
+  if (plan.compressionTest) {
+    const ex = process.env.BB_EXPECT_COMPRESS;
+    if (ex !== 'on' && ex !== 'off') { say('STOPPED: this plan is a compression test; set BB_EXPECT_COMPRESS to on or off.'); finish(3); return; }
+    if (flags.compress !== (ex === 'on')) { say(`STOPPED: the plan expects compression ${ex} but the server reports compress=${flags.compress}. Nothing was tested.`); finish(3); return; }
+    say(`Compression test: server compression is ${ex.toUpperCase()}, as expected. Everything else in the plan is identical between the on and off runs.`);
+  }
   say(`Server switches: ${JSON.stringify(flags)}`);
   say(`Instance as reported by the server: Node ${inst.node}, ${inst.cpusVisible} CPU(s) visible, cgroup CPU limit ${inst.cgroupCpuMax}, memory ${inst.totalMemMB} MB (cgroup limit ${inst.cgroupMemMaxMB} MB).`);
   say(`Warm-up: ${plan.warmup.idleSeconds} s idle, then a ${plan.warmup.warmupMatchSeconds} s practice match. NOT counted in the results.`);
@@ -218,6 +259,7 @@ process.on('SIGTERM', () => { say('Cancelled.'); finish(1, results, {}); });
       if (r.simSpeed == null) reasons.push('game speed could not be measured (no match was running long enough in the window)'); else if (r.simSpeed < minSpd) reasons.push(`game speed ${f2(r.simSpeed)} (slowest room) is below the minimum ${minSpd}; ${f2(r.server.discardedByCatchupCapS)} s of game time in total (${f2(r.server.discardedByCatchupCapWorstRoomS)} s in the worst room) was discarded by the catch-up cap and ${f2(r.server.discardedByStallLimitS)} s by the 0.25 s stall limit`);
       const maxLag = plan.abort.runnerLoopP99Ms == null ? 100 : plan.abort.runnerLoopP99Ms; if (r.runnerLagP99Ms > maxLag) reasons.push(`the test runner itself was overloaded (event-loop delay p99 ${f1(r.runnerLagP99Ms)} ms), so client-side numbers are unreliable`);
       if (r.roomsMeasured !== undefined && r.roomsMeasured < r.rooms && r.simSpeed != null) reasons.push(`game speed was measured for only ${r.roomsMeasured} of ${r.rooms} rooms`);
+      if (r.compressionReasons) for (const x of r.compressionReasons) reasons.push(x);
       if (r.fullReasons) for (const x of r.fullReasons) reasons.push(x);
       else if (r.earlyStop) reasons.push(r.earlyStop + ' (stage cut short)');
       if (r.serverClosed) reasons.push('server closed a player');
@@ -234,6 +276,12 @@ process.on('SIGTERM', () => { say('Cancelled.'); finish(1, results, {}); });
     const s = r.server;
     say(`| ${r.name} | ${r.players} x ${r.rooms} | ${r.soldiersPerRoom} | ${f1(r.clientRateMin)} (${r.expectHz}) | ${f1(r.gapP95Worst)} / ${f1(r.gapMaxWorst)} | ${f1(r.kbpsUncompressedPerPlayer)} | ${f1(s.wireKBpsOut)} | ${f1(r.rttP50Worst)} / ${f1(r.rttP95Worst)} | ${f2(s.cpuCoresUsed)} | ${s.cgroupThrottledSeconds == null ? 'n/a' : f1(s.cgroupThrottledSeconds)} | ${f1(s.eventLoopDelayMs.p99)} | ${f1(s.stepMsMean)} / ${f1(s.stepMsP95)} / ${f1(s.stepMsMax)} | ${f1(s.stepsPerSec / r.rooms)} | ${f2(r.simSpeed)} | ${f2(s.discardedByCatchupCapS)} / ${f2(s.discardedByCatchupCapWorstRoomS)} / ${f2(s.discardedByStallLimitS)} | ${r.errors} | ${f1(r.runnerLagP99Ms)} | ${f1(r.rssMaxSampledMB)} | ${r.disconnects} |`);
   }
+  if (plan.compressionTest) {
+    say('Compression measurements (this run only; compare.js judges on versus off):'); say('');
+    say('| Stage | Wire/decompressed ratio | Wire KB/s out | CPU ms per delivered snapshot | Players negotiated deflate (player view) | Connections negotiated deflate (server view) | Wire bytes measured |'); say('|---|---|---|---|---|---|---|');
+    for (const r of results) if (r.compression) { const c = r.compression; say(`| ${r.name} | ${f2(c.wireUncompressedRatio)} | ${f1(r.server && r.server.wireKBpsOut)} | ${f2(c.cpuMsPerDeliveredSnapshot)} | ${c.clientsNegotiated} of ${c.clientsNegotiated + c.clientsNotNegotiated + c.clientsUnknown} | ${c.serverDeflate} of ${c.serverClients} | ${c.wireBytesOut} |`); }
+    say('');
+  }
   for (const r of results) if (r.fullMatch) say(`Full match ${r.name}: ${r.matchesFinished} of ${r.matchesStarted} match(es) finished normally (setting ${r.matchLengthSetting} s; ended by ${r.endedBy || 'n/a'}; ${r.winners || 'no valid result'}); game time ${f1(r.matchGameSeconds)} s in ${f1(r.matchWallSeconds)} real s = speed ${f2(r.matchSpeed)}; server-measured speed before the end ${f2(r.simSpeed)}; longest wait allowed ${r.maxWaitSeconds} s.`);
   say('');
   say('Notes: results describe this staging instance at this moment only. They do not guarantee identical production performance. Step times and CPU come from the server itself; snapshot rates, gaps and RTT come from the test players, whose own network (GitHub to Render) adds latency.');
@@ -242,8 +290,13 @@ process.on('SIGTERM', () => { say('Cancelled.'); finish(1, results, {}); });
   finish(bad ? 1 : 0, results, { flags, inst, coldS });
 })().catch((e) => { console.log('ERROR: ' + (e && e.message)); process.exit(1); });
 
+function fingerprint() {   // identical for every run of the same plan; compare.js refuses to compare runs whose fingerprints differ
+  const { label, ...rest } = plan; const j = JSON.stringify({ rest, expectCompress: undefined });
+  return crypto.createHash('sha256').update(j).digest('hex').slice(0, 16);
+}
 function finish(code, results, extra) {
-  try { fs.writeFileSync(path.join(__dirname, 'results.json'), JSON.stringify({ label: plan.label, results, extra }, null, 1)); } catch (e) {}
+  const meta = { tag: RUN_TAG, startedAt: STARTED_AT, endedAt: new Date().toISOString(), exitCode: code, complete: code === 0, planFingerprint: fingerprint(), compressionTest: !!plan.compressionTest, compressExpect: process.env.BB_EXPECT_COMPRESS || null, headlineStage: plan.headlineStage || null, runnerNode: process.version };
+  try { fs.writeFileSync(path.join(__dirname, RESULTS_NAME), JSON.stringify({ label: plan.label, results, extra: Object.assign({}, extra, meta) }, null, 1)); } catch (e) {}
   try { if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, out.join('\n') + '\n'); } catch (e) {}
   process.exit(code);
 }

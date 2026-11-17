@@ -17,6 +17,9 @@ function createStats({ hub, io, flags, secret }) {
   const extraMs = (ns) => Math.max(0, ns / 1e6 - LOOP_RES_MS);
   let w;
   const bytesNow = () => { const m = new Map(); try { for (const [id, c] of Object.entries(io.engine.clients || {})) { const s = c.request && c.request.socket; if (s) m.set(id, s.bytesWritten || 0); } } catch (e) {} return m; };
+  /* how many connected players actually negotiated permessage-deflate (read from the live websocket objects; null = could not be read) */
+  const deflateNow = () => { let total = 0, known = 0, deflate = 0; try { for (const c of Object.values(io.engine.clients || {})) { total++; const ws = c.transport && c.transport.socket; const ex = ws && ws.extensions; if (ex === undefined || ex === null) continue; known++; const str = typeof ex === 'string' ? ex : Object.keys(ex).join(','); if (/permessage-deflate/.test(str)) deflate++; } } catch (e) {} return { total, known, deflate }; };
+  const ver = (name) => { try { return require(name + '/package.json').version; } catch (e) { return null; } };
   function reset() {
     loop.reset();
     w = { t: Date.now(), cpu: process.cpuUsage(), cg: cgStat(), steps: [], stepN: 0, stepSum: 0, stepMax: 0, simSum: 0, discCap: 0, discStall: 0, rooms: new Map(), snaps: 0, bytes0: bytesNow(), rssMax: 0 };
@@ -39,7 +42,7 @@ function createStats({ hub, io, flags, secret }) {
     const cgMax = readNum('/sys/fs/cgroup/memory.max'), cgCur = readNum('/sys/fs/cgroup/memory.current');
     return {
       role: 'staging', flags,
-      instance: { node: process.version, platform: process.platform, cpusVisible: os.cpus().length, totalMemMB: Math.round(os.totalmem() / 1048576), cgroupCpuMax: readText('/sys/fs/cgroup/cpu.max') || null, cgroupMemMaxMB: cgMax ? Math.round(cgMax / 1048576) : cgMax, uptimeS: Math.round(process.uptime()) },
+      instance: { node: process.version, platform: process.platform, cpusVisible: os.cpus().length, totalMemMB: Math.round(os.totalmem() / 1048576), cgroupCpuMax: readText('/sys/fs/cgroup/cpu.max') || null, cgroupMemMaxMB: cgMax ? Math.round(cgMax / 1048576) : cgMax, uptimeS: Math.round(process.uptime()), versions: { socketio: ver('socket.io'), engineio: ver('engine.io'), ws: ver('ws') } },
       window: {
         seconds: r3(secs),
         cpuCoresUsed: r3((cpu.user + cpu.system) / 1e6 / secs), cpuUserS: r3(cpu.user / 1e6), cpuSystemS: r3(cpu.system / 1e6),
@@ -51,7 +54,7 @@ function createStats({ hub, io, flags, secret }) {
         wireBytesOut: wire, wireKBpsOut: r3(wire / 1024 / secs)
       },
       memory: { rssMB: r3(mem.rss / 1048576), rssMaxSampledMB: r3(w.rssMax / 1048576), rssSampleIntervalS: 1, heapUsedMB: r3(mem.heapUsed / 1048576), cgroupCurrentMB: cgCur ? Math.round(cgCur / 1048576) : cgCur },
-      load: { connectedClients: Object.keys((io.engine && io.engine.clients) || {}).length, rooms: hub.rooms.size, humansInRooms: humans, matchesRunning: matches }
+      load: { deflate: deflateNow(), connectedClients: Object.keys((io.engine && io.engine.clients) || {}).length, rooms: hub.rooms.size, humansInRooms: humans, matchesRunning: matches }
     };
   }
   function ok(req) {

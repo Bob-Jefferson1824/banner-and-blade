@@ -1,9 +1,18 @@
 name: staging-perf
-# Runs ONLY on the staging-perf branch of this repository. A manual run from any other branch (including main) is skipped by the `if:` guards below. Needs no database and no production secrets.
+# Pushes to staging-perf run only the local checks. Manual runs choose Tier A (run_compression_local, default on, local only) and/or Tier B (run_staging, default off). Runs ONLY on the staging-perf branch of this repository. A manual run from any other branch (including main) is skipped by the `if:` guards below. Needs no database and no production secrets.
 on:
   push:
     branches: [staging-perf]
   workflow_dispatch:
+    inputs:
+      run_compression_local:
+        description: 'Tier A: compression test on this GitHub runner (local loopback, never contacts Render)'
+        type: boolean
+        default: true
+      run_staging:
+        description: 'Tier B: progressive test against the Render STAGING service (needs the two staging secrets; leave OFF unless you mean it)'
+        type: boolean
+        default: false
 concurrency:
   group: staging-perf
   cancel-in-progress: false
@@ -32,10 +41,13 @@ jobs:
         run: |
           node --check server.js && node --check hub.js && node --check perf/stats.js
           node --check perf/staging_load_test.js && node --check perf/regression_local.js && node --check perf/staging_gate.js && node --check perf/selftest.js
+          node --check perf/compare.js && node --check perf/compare_selftest.js
       - name: Existing server tests (original behaviour unchanged)
         run: npm test
       - name: Self-tests (staging gate, per-room game speed, discard accounting, event-loop baseline)
         run: node perf/selftest.js
+      - name: Compression comparison tool self-test (synthetic results, no server)
+        run: node perf/compare_selftest.js
       - name: Switch regression (baseline vs fixed step vs broadcast-once)
         run: node perf/regression_local.js 10
       - name: Test runner refuses production and look-alike hosts
@@ -64,10 +76,59 @@ jobs:
           J
           STAGING_URL=http://127.0.0.1:3992 STAGING_STATS_SECRET=$S BB_PLAN=/tmp/plan_smoke.json node perf/staging_load_test.js; C=$?
           kill $P; exit $C
+  compression-local:
+    name: Compression test on this runner (manual run only, real Socket.IO over loopback)
+    needs: local-checks
+    if: github.event_name == 'workflow_dispatch' && inputs.run_compression_local == true && github.ref == 'refs/heads/staging-perf' && github.repository == 'Bob-Jefferson1824/banner-and-blade'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults: { run: { working-directory: server } }
+    env: { BB_RUNNER_ALLOW_LOCALHOST: '1' }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci
+      - name: Real socket.io-client was installed by npm ci (not a stand-in)
+        run: node -e "const p=require('socket.io-client/package.json'); if(p.name!=='socket.io-client'||!/^4\./.test(p.version)||p.FAKE_TEST_ONLY){console.log('unexpected',p.name,p.version);process.exit(1)} console.log('real socket.io-client',p.version)"
+      - name: Run the trials (compression off and on, interleaved; identical plan every time)
+        run: |
+          # Everything here is local: a staging-mode server on 127.0.0.1 with a throwaway secret. No Render, no production, no repository secrets.
+          S=0123456789abcdef0123456789abcdef
+          rm -f perf/results-*.json
+          run_one() {   # $1 = off|on   $2 = run tag   $3 = plan file
+            if [ "$1" = on ]; then C=1; else C=0; fi
+            BB_STAGING_SECRET=$S BB_COMPRESS=$C PORT=3995 node server.js > /tmp/server-$2.log 2>&1 & P=$!
+            sleep 4
+            set +e
+            STAGING_URL=http://127.0.0.1:3995 STAGING_STATS_SECRET=$S BB_PLAN=perf/$3 BB_EXPECT_COMPRESS=$1 BB_RESULTS_FILE=results-$2.json BB_RUN_TAG=$2 node perf/staging_load_test.js
+            echo "run $2 finished with exit code $?"
+            set -e
+            kill $P 2>/dev/null || true; wait $P 2>/dev/null || true
+          }
+          run_one off t1-off plan_compress_local.json;  run_one on t1-on plan_compress_local.json
+          run_one on  t2-on  plan_compress_local.json;  run_one off t2-off plan_compress_local.json
+          run_one off t3-off plan_compress_local.json;  run_one on t3-on plan_compress_local.json
+          run_one off full-off plan_compress_fullmatch.json;  run_one on full-on plan_compress_fullmatch.json
+      - name: Compare on versus off (writes the verdict to the run summary)
+        run: node perf/compare.js perf --out perf/compare-out
+      - name: Collect the server logs next to the verdict
+        if: always()
+        run: mkdir -p perf/compare-out && cp /tmp/server-*.log perf/compare-out/ 2>/dev/null || true
+      - name: Save every results file, the verdict and the server logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compression-local-results
+          path: |
+            server/perf/results-*.json
+            server/perf/compare-out/
+          if-no-files-found: warn
   staging-run:
     name: Progressive staging test (needs the two staging secrets)
     needs: local-checks
-    if: github.ref == 'refs/heads/staging-perf' && github.repository == 'Bob-Jefferson1824/banner-and-blade'
+    # Runs ONLY on a manual run where run_staging is explicitly ticked. Never on a push, and never when only the compression test is ticked.
+    if: github.event_name == 'workflow_dispatch' && inputs.run_staging == true && github.ref == 'refs/heads/staging-perf' && github.repository == 'Bob-Jefferson1824/banner-and-blade'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults: { run: { working-directory: server } }
